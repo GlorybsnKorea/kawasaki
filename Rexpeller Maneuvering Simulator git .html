@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
+    <title>KAWASAKI REX-PELLER MANEUVERING SIMULATOR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: #0a1929;
+        }
+
+        :root {
+            --navy: #0a1929;
+            --dark-blue: #1a2f4a;
+            --accent-cyan: #00d4ff;
+            --accent-orange: #ff6b35;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --light-gray: #e8eef5;
+            --warning-yellow: #ffcc00;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #0a1929;
+            color: white;
+            margin: 0;
+            padding: 1.2vw;
+            min-height: 100vh;
+            overflow: auto;
+        }
+
+        .container {
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 2px solid var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            color: var(--light-gray);
+            font-size: 1.1em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Control panels (left & right) - smaller size */
+        .control-panel {
+            padding: 15px;
+        }
+
+        .control-panel .panel-title {
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+        }
+
+        .control-panel .control-label {
+            font-size: 0.7em;
+            margin-bottom: 4px;
+        }
+
+        .control-panel .info-badge {
+            font-size: 0.65em;
+            padding: 2px 6px;
+        }
+
+        .control-panel .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-panel input[type="range"] {
+            height: 6px;
+        }
+
+        .control-panel input[type="range"]::-webkit-slider-thumb {
+            width: 18px;
+            height: 18px;
+        }
+
+        .control-panel input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+        }
+
+        .control-panel .value-display {
+            min-width: 80px;
+            font-size: 0.85em;
+            padding: 5px 10px;
+        }
+
+        .control-panel select {
+            padding: 8px;
+            font-size: 0.85em;
+        }
+
+        .control-panel .engine-indicator {
+            padding: 10px;
+            margin-top: 6px;
+        }
+
+        .control-panel .indicator-label {
+            font-size: 0.7em;
+        }
+
+        .control-panel .indicator-value {
+            font-size: 0.95em;
+        }
+
+        /* Visual display panel (center) - larger size */
+        .visual-panel {
+            padding: 30px;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-cyan);
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px var(--accent-cyan);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .value-display {
+            min-width: 120px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            padding: 8px 15px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--accent-cyan);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 2px solid var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        select option {
+            background: var(--dark-blue);
+            color: white;
+        }
+
+        .engine-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .indicator-label {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .indicator-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .port-engine {
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .starboard-engine {
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.2));
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 700;
+            font-size: 0.95em;
+        }
+
+        .result-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .warning-box {
+            background: rgba(255, 204, 0, 0.15);
+            border: 2px solid var(--warning-yellow);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .warning-icon {
+            display: inline-block;
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .warning-text {
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .thrust-arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .thrust-arrow.active {
+            opacity: 1;
+        }
+
+        .scenario-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            border: none;
+            border-radius: 10px;
+            color: var(--navy);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scenario-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .scenario-btn:active {
+            transform: translateY(0);
+        }
+
+        .play-control {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .play-toggle-btn {
+            padding: 20px 60px;
+            font-size: 1.8em;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            border: 3px solid var(--accent-cyan);
+            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 255, 136, 0.3));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .play-toggle-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.7);
+        }
+
+        .play-toggle-btn.playing {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.3), rgba(255, 68, 68, 0.3));
+            border-color: var(--accent-red);
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.4);
+        }
+
+        .play-toggle-btn.playing:hover {
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.7);
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        /* Lever Controls - Card Style (Excel Design) */
+        .lever-container-card {
+            margin: 6px 0;
+            padding: 32px 12px 10px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: visible;
+        }
+
+        /* ── 3그룹 레이아웃 ── */
+        .lever-grid {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: stretch !important;
+            justify-content: center !important;
+            gap: 16px !important;
+            overflow-x: auto;
+        }
+
+        /* 각 그룹 박스 */
+        .card-group {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+            align-items: stretch;
+            padding: 22px 10px 10px 10px;
+            border: 2px solid rgba(0,212,255,0.55);
+            border-radius: 12px;
+            background: rgba(0,20,40,0.55);
+            box-shadow: 0 0 18px rgba(0,212,255,0.12),
+                        inset 0 0 20px rgba(0,212,255,0.04);
+            position: relative;
+            overflow: visible;
+        }
+
+        /* 그룹 라벨 */
+        .card-group-label {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.52em;
+            font-weight: 700;
+            color: rgba(0,212,255,0.9);
+            background: #0a1a28;
+            padding: 1px 8px;
+            border: 1px solid rgba(0,212,255,0.5);
+            border-radius: 4px;
+            white-space: nowrap;
+            letter-spacing: 0.08em;
+        }
+
+        /* lever-grid → .lever-container-card CSS로 통합 */
+
+        .lever-card {
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+            flex: 0 0 100px;
+            background: linear-gradient(135deg, rgba(15, 25, 35, 0.95), rgba(20, 35, 50, 0.9));
+            border: 2px solid var(--accent-cyan);
+            border-radius: 10px;
+            padding: 7px;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            align-self: stretch;
+        }
+
+        .lever-card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.60em;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            text-align: center;
+            padding: 3px 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 5px;
+            width: 100%;
+            letter-spacing: 0.2px;
+        }
+
+        .rpm-display-card {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.68em;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-align: center;
+            padding: 3px 6px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--accent-green);
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 2px;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.25);
+        }
+
+        .clutch-status-card {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62em;
+            font-weight: 700;
+            text-align: center;
+            padding: 3px 5px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .clutch-status-card.on {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .clutch-status-card.off {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+        }
+
+
+
+        .lever-card-body {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            flex: 1;
+            min-height: 88px;
+        }
+
+        .lever-base-vertical-card {
+            position: relative;
+            width: 6px;
+            height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lever-slot-vertical-card {
+            position: absolute;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(0, 212, 255, 0.3) 0%, 
+                rgba(0, 212, 255, 0.5) 50%, 
+                rgba(0, 212, 255, 0.3) 100%);
+            border-radius: 4px;
+            box-shadow: 
+                inset 0 0 10px rgba(0, 212, 255, 0.5),
+                0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .lever-handle-vertical-card {
+            position: absolute;
+            width: 36px;
+            height: 20px;
+            background: radial-gradient(ellipse at center,#000 0%,#111 60%,#222 100%);
+    border-radius: 10px;
+            border: 2px solid rgba(0, 255, 200, 0.6);
+            cursor: grab;
+            transition: all 0.15s ease;
+            box-shadow: 
+                0 0 14px rgba(0, 255, 200, 0.8),
+                inset 0 0 10px rgba(255, 255, 255, 0.3);
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .lever-handle-vertical-card:active {
+            cursor: grabbing;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 
+                0 0 22px rgba(0, 255, 200, 1),
+                inset 0 0 14px rgba(255, 255, 255, 0.5);
+        }
+
+        .lever-knob-card {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 9px;
+            height: 9px;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 1) 0%, 
+                rgba(200, 255, 255, 0.8) 50%,
+                rgba(0, 212, 255, 0.6) 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .lever-scale-card {
+            position: absolute;
+            right: 10px;
+            height: 74px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55em;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            text-align: right;
+        }
+
+        .lever-scale-cpp {
+            font-size: 0.52em;
+        }
+
+        .lever-scale-steering {
+            font-size: 0.50em;
+        }
+
+        .lever-value-box {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-align: center;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            width: 100%;
+            box-shadow: inset 0 0 8px rgba(0, 212, 255, 0.15);
+        }
+
+        /* Angle Marker on Propeller */
+        .angle-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, rgba(255, 255, 0, 0.9), rgba(255, 200, 0, 0.7));
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 255, 0, 0.8);
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+
+        .direction-display {
+            text-align: center;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .direction-arrow {
+            display: inline-block;
+            margin-bottom: 6px;
+            transition: transform 0.5s ease;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+        }
+
+        .direction-arrow svg {
+            display: block;
+        }
+
+        .direction-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05em;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* ── 선박 비주얼 컨테이너 ── */
+        /* ══════════════════════════════════════════════════
+           선박 비주얼 컨테이너 — 가로 레이아웃
+           ══════════════════════════════════════════════════ */
+        .ship-visual {
+            position: relative;
+            width: 100%;
+            height: clamp(400px, 42vw, 620px);
+            background: radial-gradient(ellipse at 50% 50%, rgba(0,40,80,0.85) 0%, rgba(0,10,25,0.98) 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(0,212,255,0.6);
+            box-shadow: inset 0 0 60px rgba(0,212,255,0.08),
+                        inset 0 0 200px rgba(0,0,0,0.3);
+        }
+
+
+        /* ======= THRUST WATER JET CANVAS ======= */
+        #thrustCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            border-radius: 15px;
+        }
+
+        /* ======= WATER SHIMMER CANVAS (TOP-DOWN VIEW) ======= */
+        #waterShimmerCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 15px;
+        }
+
+        /* ── 중앙 연결선 SVG (배경) ── */
+        .connector-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* ── 선박 평면도 레이아웃 ── */
+        .ship {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 344px;
+            height: 374px;
+            z-index: 10;
+            overflow: visible;
+        }
+
+        /* 구형 선수/선체/조종석 비표시 */
+        .ship-bow-slim, .ship-body-slim, .ship-cockpit { display: none; }
+
+        /* ── SVG 선체: 절대위치 (선박 전체 덮음) ── */
+        .ship-hull-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        /* ── 선미 노즐 영역: 절대위치 (프로펠러 원과 정렬) ── */
+        /* arrow center = top(222) + 78 = 300 = hull propeller circle cy=300 */
+        .ship-stern-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 344px;
+            height: 374px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .stern-bridge, .stern-center {
+            width: 32px;
+            height: 12px;
+            background: #1e3a4a;
+            border-radius: 3px;
+            position: relative;
+            margin-top: 72px;  /* align bridge center with propeller cy=300 */
+            box-shadow: 0 0 10px rgba(0,212,255,0.5);
+        }
+        /* 엔진 발광점 */
+        .engine-glow {
+            position: absolute;
+            bottom: 1px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 8px var(--accent-cyan);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        /* port/stbd engine glow overridden by .nozzle-wrap .engine-glow */
+
+
+        /* ── KORT NOZZLE 래퍼: stern-area flex row 내에서 정렬 ── */
+        .nozzle-wrap, .prop-mark-wrap {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: visible;
+            pointer-events: auto;
+        }
+        /* PORT: 프로펠러 cx=148,cy=296 → top=236, left=88 */
+        #portThrustWrap  { top: 236px; left: 88px;  }
+        /* STBD: 프로펠러 cx=196,cy=296 → top=236, left=136 */
+        #stbdThrustWrap  { top: 236px; left: 136px; }
+
+
+        /* 엔진 글로우를 노즐 SVG 중심에 배치 (파티클 spawn 기준점) */
+        .nozzle-wrap .engine-glow {
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            transform: translate(-50%, -50%);
+            bottom: auto;
+            width: 10px;
+            height: 10px;
+            z-index: 5;
+        }
+
+        /* 추력 화살표 SVG */
+        #portThrustMark, #stbdThrustMark {
+            display: block;
+            overflow: visible;
+        }
+
+        /* ── 스티어링 직접 각도 입력 ── */
+        .steer-input-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .steer-direct-input {
+            width: 100%;
+            padding: 5px 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.88em;
+            font-weight: 700;
+            color: #00ffcc;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 6px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield;
+        }
+        .steer-direct-input::-webkit-inner-spin-button,
+        .steer-direct-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        .steer-direct-input:focus {
+            border-color: #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 200, 0.6);
+        }
+
+        .steer-direct-input.input-ok {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+
+        .steer-direct-input.input-err {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+        }
+
+        .steer-input-hint {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.52em;
+            color: rgba(0, 212, 255, 0.6);
+            text-align: center;
+        }
+
+        /* 구형 thrust-cross 클래스 무효화 */
+        .thrust-cross { display: block; }
+
+        .thrust-mark-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62em;
+            font-weight: 700;
+            color: #ffc000;
+            text-align: center;
+            white-space: nowrap;
+            position: absolute;
+            top: 118px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .right-label { color: #ff7070; }
+
+        /* 구형 CSS 완전 차단 */
+        .ship-body, .ship-bow, .propeller, .propeller-left, .propeller-right,
+        .rudder, .rudder-left, .rudder-right, .angle-marker,
+        .thrust-mark-wrap, .left-mark, .right-mark,
+        .ship-stern-slim, .connector-svg { display: none; }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* Main Layout Structure */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Bottom 3-column section */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* Note Panels */
+        .note-panel {
+            background: rgba(0, 80, 140, 0.5);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 15px;
+            padding: 20px;
+            color: var(--light-gray);
+        }
+
+        .note-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+        }
+
+        .note-subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: var(--warning-yellow);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .note-body {
+            font-size: 0.82em;
+            line-height: 1.6;
+            color: var(--light-gray);
+        }
+
+        /* Scenario Table (Note 2) */
+        .scenario-table {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .scenario-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75em;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            padding: 4px 6px;
+            border-bottom: 1px solid rgba(0,212,255,0.4);
+            margin-bottom: 4px;
+        }
+
+        .scenario-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 0.72em;
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.25);
+            color: #cde;
+        }
+
+        .scenario-row span {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .scenario-result {
+            grid-column: 1 / -1;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.82em;
+            font-weight: 700;
+            color: var(--accent-green);
+            padding-top: 2px;
+        }
+
+        .highlight-stbd .scenario-result { color: #4af; }
+        .highlight-port .scenario-result  { color: var(--accent-orange); }
+
+        /* Center Visual */
+        .center-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+        }
+
+        /* Play Control Button */
+        .play-control {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .play-toggle-btn {
+            width: 100%;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, rgba(0, 150, 200, 0.8), rgba(0, 212, 255, 0.6));
+            border: 3px solid var(--accent-cyan);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .play-toggle-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.9), rgba(0, 255, 200, 0.7));
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .play-toggle-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.4);
+        }
+
+        .play-toggle-btn.playing {
+            background: linear-gradient(135deg, rgba(255, 100, 100, 0.8), rgba(255, 150, 150, 0.6));
+            border-color: var(--accent-red);
+        }
+
+        /* Legacy support */
+        .direction-indicator {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2em;
+            font-weight: 900;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid var(--accent-cyan);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KAWASAKI REX-PELLER SIMULATOR</h1>
+            <div class="subtitle">CPP System Maneuvering Training Program (Copyright by G.Y. Lee Busan, Republic of Korea.)</div>
+        </header>
+<div style="width: 100% !important; background-color: #e3f2fd; border-radius: 10px; padding: 15px 20px; margin: 10px 0 20px 0; color: #000000; font-size: 14px; text-align: left; box-sizing: border-box; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+    
+    <div style="font-weight: 900; margin-bottom: 12px; text-align: center; font-size: 15px; letter-spacing: 1px;">
+        [ SIMULATION INSTRUCTIONS ]
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; gap: 15px; line-height: 1.6; width: 100%;">
+        <div style="flex: 1;">
+            <span style="font-weight: 800;">■ STEERING LEVER</span><br>
+            Drag handle OR type angle & press Enter.
+        </div>
+        <div style="flex: 1;">
+            <span style="font-weight: 800;">■ GOVERNOR HANDLE</span><br>
+            Drag handle (Engine RPM UP/DOWN & Clutch ON/OFF).
+        </div>
+        <div style="flex: 1;">
+            <span style="font-weight: 800;">■ CPP ANGLE</span><br>
+            Drag handle OR type angle & press Enter.
+        </div>
+    </div>
+
+</div>
+        <div class="main-layout">
+            <!-- Top Section: Lever Cards -->
+            <div class="lever-container-card">
+                <div class="lever-grid">
+
+                    <!-- ══ GROUP 1: STEERING ANGLE ══ -->
+                    <div class="card-group">
+                        <span class="card-group-label">STEERING ANGLE</span>
+                        <!-- PORT STEERING Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">PORT STEERING</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="portSteeringLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card lever-scale-steering">
+                                <span>AH 90°</span>
+                                <span>AH 45°</span>
+                                <span>0°</span>
+                                <span>AS 45°</span>
+                                <span>AS 90°</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="portSteeringAngle">0°</div>
+                        <div class="steer-input-wrap">
+                            <input type="number" id="portSteerInput" class="steer-direct-input"
+                                min="-90" max="90" step="1" value="0"
+                                placeholder="−90 ~ 90">
+                            <div class="steer-input-hint">AH(+) / AS(−)</div>
+                        </div>
+                    </div>
+                        <!-- STBD STEERING Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">STBD STEERING</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="stbdSteeringLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card lever-scale-steering">
+                                <span>AH 90°</span>
+                                <span>AH 45°</span>
+                                <span>0°</span>
+                                <span>AS 45°</span>
+                                <span>AS 90°</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="stbdSteeringAngle">0°</div>
+                        <div class="steer-input-wrap">
+                            <input type="number" id="stbdSteerInput" class="steer-direct-input"
+                                min="-90" max="90" step="1" value="0"
+                                placeholder="−90 ~ 90">
+                            <div class="steer-input-hint">AH(+) / AS(−)</div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- ══ GROUP 2: GOVERNOR ══ -->
+                    <div class="card-group">
+                        <span class="card-group-label">GOVERNOR</span>
+                        <!-- PORT GOVERNOR Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">PORT GOVERNOR</div>
+                        <div class="clutch-status-card" id="portClutchStatus">CLUTCH: OFF</div>
+                        <div class="rpm-display-card" id="portRPMCard">RPM: 0</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="portGovernorLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card">
+                                <span>10</span>
+                                <span>5</span>
+                                <span>0 (OFF)</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="portGovernorValue2">0</div>
+                    </div>
+                        <!-- STBD GOVERNOR Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">STBD GOVERNOR</div>
+                        <div class="clutch-status-card" id="stbdClutchStatus">CLUTCH: OFF</div>
+                        <div class="rpm-display-card" id="stbdRPMCard">RPM: 0</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="stbdGovernorLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card">
+                                <span>10</span>
+                                <span>5</span>
+                                <span>0 (OFF)</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="stbdGovernorValue2">0</div>
+                    </div>
+                    </div>
+
+                    <!-- ══ GROUP 3: CPP ANGLE ══ -->
+                    <div class="card-group">
+                        <span class="card-group-label">CPP ANGLE</span>
+                        <!-- PORT CPP Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">PORT CPP</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="portCPPLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card lever-scale-cpp">
+                                <span>AH 27</span>
+                                <span>AH 15</span>
+                                <span>0</span>
+                                <span>AS 15</span>
+                                <span>AS 22</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="portCPPValue2">0</div>
+                        <div class="steer-input-wrap">
+                            <input type="number"
+                                   id="portCPPInput"
+                                   class="steer-direct-input"
+                                   min="-22"
+                                   max="27"
+                                   step="0.1"
+                                   value="0">
+                            <div class="steer-input-hint">AH(+) / AS(−)</div>
+                        </div>
+                    </div>
+                        <!-- STBD CPP Card -->
+                    <div class="lever-card">
+                        <div class="lever-card-title">STBD CPP</div>
+                        <div class="lever-card-body">
+                            <div class="lever-base-vertical-card">
+                                <div class="lever-slot-vertical-card"></div>
+                                <div class="lever-handle-vertical-card" id="stbdCPPLever">
+                                    <div class="lever-knob-card"></div>
+                                </div>
+                            </div>
+                            <div class="lever-scale-card lever-scale-cpp">
+                                <span>AH 27</span>
+                                <span>AH 15</span>
+                                <span>0</span>
+                                <span>AS 15</span>
+                                <span>AS 22</span>
+                            </div>
+                        </div>
+                        <div class="lever-value-box" id="stbdCPPValue2">0</div>
+                        <div class="steer-input-wrap">
+                            <input type="number"
+                                   id="stbdCPPInput"
+                                   class="steer-direct-input"
+                                   min="-22"
+                                   max="27"
+                                   step="0.1"
+                                   value="0">
+                            <div class="steer-input-hint">AH(+) / AS(−)</div>
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Section: 3 columns -->
+            <div class="bottom-section">
+
+                <!-- LEFT: Note 1 -->
+                <div class="note-panel">
+                    <div class="note-title">Note 1;</div>
+                    <div class="note-body">
+                        <p>1. The hull motion will turns in the direction where the output (steering angle, RPM, CPP angle) is small.</p>
+                        <br>
+                        <p>2. The order of the hull's turning motion is as follows:<br>
+                        1) Steering angle.<br>
+                        2) CPP angle.<br>
+                        3) RPM</p>
+                        <br>
+                        <p>3. The twin main engine system can change the motion of the hull in three(3) ways as shown above.</p>
+                    </div>
+                </div>
+
+                <!-- CENTER: Ship Visual -->
+                <div class="panel visual-panel center-visual">
+                    <div class="direction-arrow" id="directionArrow">
+                        <svg width="60" height="60" viewBox="0 0 80 80" style="transition: transform 0.4s ease;">
+                            <path d="M 40 10 L 60 35 L 50 35 L 50 70 L 30 70 L 30 35 L 20 35 Z"
+                                  fill="var(--accent-cyan)"
+                                  stroke="var(--accent-green)"
+                                  stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="direction-text" id="directionDisplay">STOP  (정지)</div>
+
+                    <div class="ship-visual">
+                        <canvas id="waterShimmerCanvas"></canvas>
+                        <canvas id="thrustCanvas"></canvas>
+                        <!-- 격자 + 중심 십자선 (이동 확인용) -->
+                        <svg class="visual-grid" viewBox="0 0 100 100" preserveAspectRatio="none"
+                             style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;">
+                            <!-- 격자선 -->
+                            <defs>
+                                <pattern id="gridPat" width="10" height="10" patternUnits="userSpaceOnUse">
+                                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(0,212,255,0.07)" stroke-width="0.3"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100" height="100" fill="url(#gridPat)"/>
+                            <!-- 중심 십자선 -->
+                            <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(0,212,255,0.15)" stroke-width="0.4" stroke-dasharray="2,3"/>
+                            <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(0,212,255,0.15)" stroke-width="0.4" stroke-dasharray="2,3"/>
+                            <!-- 중심점 -->
+                            <circle cx="50" cy="50" r="1.2" fill="rgba(0,212,255,0.3)"/>
+                        </svg>
+
+                        <!-- 선박 본체 -->
+                        <div class="ship" id="shipElement">
+                            <!-- ══════════════════════════════════════════
+                                 실제 선박 평면도 SVG (344×310px)
+                                 선수(bow) 위 → 선미(stern)+프로펠러 아래
+                                 ══════════════════════════════════════════ -->
+                            <svg class="ship-hull-svg" viewBox="0 0 344 374"
+                                 width="344" height="374" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="hullGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%"   stop-color="#3a7ca5"/>
+                                        <stop offset="35%"  stop-color="#2a6080"/>
+                                        <stop offset="72%"  stop-color="#1e4a64"/>
+                                        <stop offset="100%" stop-color="#132838"/>
+                                    </linearGradient>
+                                    <linearGradient id="deckGrad" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%"   stop-color="rgba(0,50,90,0.65)"/>
+                                        <stop offset="22%"  stop-color="rgba(0,90,150,0.15)"/>
+                                        <stop offset="50%"  stop-color="rgba(0,140,210,0.0)"/>
+                                        <stop offset="78%"  stop-color="rgba(0,90,150,0.15)"/>
+                                        <stop offset="100%" stop-color="rgba(0,50,90,0.65)"/>
+                                    </linearGradient>
+                                    <linearGradient id="hullStroke" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%"   stop-color="rgba(0,212,255,0.95)"/>
+                                        <stop offset="60%"  stop-color="rgba(0,180,220,0.65)"/>
+                                        <stop offset="100%" stop-color="rgba(0,130,180,0.45)"/>
+                                    </linearGradient>
+                                    <radialGradient id="propGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%"   stop-color="rgba(0,35,65,0.95)"/>
+                                        <stop offset="55%"  stop-color="rgba(0,20,42,0.97)"/>
+                                        <stop offset="100%" stop-color="rgba(0,10,25,1)"/>
+                                    </radialGradient>
+                                    <filter id="hullGlow" x="-20%" y="-5%" width="140%" height="112%">
+                                        <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+                                        <feFlood flood-color="rgba(0,170,255,0.4)" result="color"/>
+                                        <feComposite in="color" in2="blur" operator="in" result="shadow"/>
+                                        <feMerge>
+                                            <feMergeNode in="shadow"/>
+                                            <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+
+                                <!-- ══ 글로우 레이어 ══ -->
+                                <path d="M 172,12
+                                         C 189,12 214,28 214,58
+                                         L 214,290 Q 214,320 196,330
+                                         Q 184,336 172,336
+                                         Q 160,336 148,330
+                                         Q 130,320 130,290
+                                         L 130,58
+                                         C 130,28 155,12 172,12 Z"
+                                      fill="none"
+                                      stroke="rgba(0,212,255,0.20)"
+                                      stroke-width="10"
+                                      filter="url(#hullGlow)"/>
+
+                                <!-- ══ 선체 메인 바디 — 선수~선미 일관된 유선형 ══ -->
+                                <path d="M 172,12
+                                         C 189,12 214,28 214,58
+                                         L 214,290 Q 214,320 196,330
+                                         Q 184,336 172,336
+                                         Q 160,336 148,330
+                                         Q 130,320 130,290
+                                         L 130,58
+                                         C 130,28 155,12 172,12 Z"
+                                      fill="url(#hullGrad)"
+                                      stroke="url(#hullStroke)"
+                                      stroke-width="2.2"/>
+
+                                <!-- ── 갑판 입체감 ── -->
+                                <path d="M 172,12
+                                         C 189,12 214,28 214,58
+                                         L 214,290 Q 214,320 196,330
+                                         Q 184,336 172,336
+                                         Q 160,336 148,330
+                                         Q 130,320 130,290
+                                         L 130,58
+                                         C 130,28 155,12 172,12 Z"
+                                      fill="url(#deckGrad)"/>
+
+                                <!-- ── 중심선 ── -->
+                                <line x1="172" y1="14" x2="172" y2="334"
+                                      stroke="rgba(0,212,255,0.10)"
+                                      stroke-width="1.1" stroke-dasharray="8,5"/>
+
+                                <!-- ── 좌·우현 내부 레일 ── -->
+                                <path d="M 162,20 C 138,36 136,80 136,280"
+                                      fill="none" stroke="rgba(0,200,255,0.18)" stroke-width="1.1"/>
+                                <path d="M 182,20 C 206,36 208,80 208,280"
+                                      fill="none" stroke="rgba(0,200,255,0.18)" stroke-width="1.1"/>
+
+                                <!-- ── 선수(Bow) 장식 ── -->
+                                <ellipse cx="172" cy="20" rx="5" ry="8"
+                                         fill="rgba(0,212,255,0.15)"
+                                         stroke="rgba(0,212,255,0.5)" stroke-width="1"/>
+                                <line x1="172" y1="12" x2="172" y2="28"
+                                      stroke="rgba(0,212,255,0.65)" stroke-width="1.5"/>
+
+                                <!-- ── 선수 작업갑판 ── -->
+                                <rect x="161" y="28" width="22" height="10" rx="2"
+                                      fill="rgba(0,100,160,0.4)"
+                                      stroke="rgba(0,180,230,0.35)" stroke-width="0.8"/>
+
+                                <!-- ── 함교(Bridge) ── -->
+                                <rect x="144" y="44" width="56" height="50" rx="4"
+                                      fill="rgba(20,55,80,0.88)"
+                                      stroke="rgba(0,180,230,0.5)" stroke-width="1.2"/>
+                                <rect x="150" y="50" width="44" height="37" rx="3"
+                                      fill="rgba(30,75,110,0.7)"
+                                      stroke="rgba(0,200,255,0.3)" stroke-width="1"/>
+                                <rect x="156" y="56" width="9" height="7" rx="1.5"
+                                      fill="rgba(0,220,255,0.5)" stroke="rgba(0,212,255,0.8)" stroke-width="0.7"/>
+                                <rect x="168" y="56" width="9" height="7" rx="1.5"
+                                      fill="rgba(0,220,255,0.5)" stroke="rgba(0,212,255,0.8)" stroke-width="0.7"/>
+                                <rect x="180" y="56" width="9" height="7" rx="1.5"
+                                      fill="rgba(0,220,255,0.5)" stroke="rgba(0,212,255,0.8)" stroke-width="0.7"/>
+                                <rect x="154" y="70" width="36" height="12" rx="2"
+                                      fill="rgba(0,200,100,0.4)"
+                                      stroke="rgba(0,255,120,0.7)" stroke-width="1"/>
+                                <rect x="158" y="73" width="28" height="6" rx="1.5"
+                                      fill="rgba(0,255,136,0.22)"/>
+
+                                <!-- ── 기관실 ── -->
+                                <rect x="139" y="105" width="66" height="80" rx="3"
+                                      fill="rgba(10,35,55,0.6)"
+                                      stroke="rgba(0,160,210,0.3)" stroke-width="1"/>
+                                <line x1="156" y1="105" x2="156" y2="185" stroke="rgba(0,150,200,0.18)" stroke-width="0.7"/>
+                                <line x1="172" y1="105" x2="172" y2="185" stroke="rgba(0,150,200,0.18)" stroke-width="0.7"/>
+                                <line x1="188" y1="105" x2="188" y2="185" stroke="rgba(0,150,200,0.18)" stroke-width="0.7"/>
+                                <line x1="139" y1="145" x2="205" y2="145" stroke="rgba(0,150,200,0.18)" stroke-width="0.7"/>
+                                <ellipse cx="172" cy="145" rx="17" ry="16"
+                                         fill="none" stroke="rgba(0,180,220,0.30)" stroke-width="1.2"/>
+                                <ellipse cx="172" cy="145" rx="8"  ry="7.5"
+                                         fill="none" stroke="rgba(0,140,190,0.22)" stroke-width="1"/>
+                                <line x1="155" y1="145" x2="189" y2="145" stroke="rgba(0,150,200,0.2)" stroke-width="0.8"/>
+                                <line x1="172" y1="129" x2="172" y2="161" stroke="rgba(0,150,200,0.2)" stroke-width="0.8"/>
+
+                                <!-- ── 볼라드 ── -->
+                                <circle cx="132" cy="82"  r="3" fill="rgba(0,180,230,0.5)" stroke="rgba(0,212,255,0.7)" stroke-width="0.8"/>
+                                <circle cx="132" cy="168" r="3" fill="rgba(0,180,230,0.5)" stroke="rgba(0,212,255,0.7)" stroke-width="0.8"/>
+                                <circle cx="212" cy="82"  r="3" fill="rgba(0,180,230,0.5)" stroke="rgba(0,212,255,0.7)" stroke-width="0.8"/>
+                                <circle cx="212" cy="168" r="3" fill="rgba(0,180,230,0.5)" stroke="rgba(0,212,255,0.7)" stroke-width="0.8"/>
+
+                                <!-- ══ 프로펠러 샤프트 라인 (기관실→프로펠러) ══ -->
+                                <!-- PORT 샤프트 -->
+                                <line x1="162" y1="185" x2="148" y2="280"
+                                      stroke="rgba(0,160,220,0.50)" stroke-width="3"
+                                      stroke-linecap="round"/>
+                                <!-- STBD 샤프트 -->
+                                <line x1="182" y1="185" x2="196" y2="280"
+                                      stroke="rgba(0,160,220,0.50)" stroke-width="3"
+                                      stroke-linecap="round"/>
+
+                                <!-- ══ 좌현(PORT) 프로펠러 — 선체 내부 cx=148, cy=296 ══ -->
+                                <circle cx="148" cy="296" r="22"
+                                        fill="url(#propGrad)"
+                                        stroke="rgba(0,160,220,0.65)" stroke-width="2"/>
+                                <circle cx="148" cy="296" r="16"
+                                        fill="none"
+                                        stroke="rgba(0,120,180,0.35)" stroke-width="1.2"/>
+                                <circle cx="148" cy="296" r="10"
+                                        fill="none"
+                                        stroke="rgba(0,100,160,0.22)" stroke-width="1"/>
+                                <!-- 블레이드 -->
+                                <line x1="148" y1="274" x2="148" y2="318" stroke="rgba(0,190,240,0.50)" stroke-width="1.3"/>
+                                <line x1="126" y1="296" x2="170" y2="296" stroke="rgba(0,190,240,0.50)" stroke-width="1.3"/>
+                                <line x1="132" y1="280" x2="164" y2="312" stroke="rgba(0,180,230,0.32)" stroke-width="1"/>
+                                <line x1="164" y1="280" x2="132" y2="312" stroke="rgba(0,180,230,0.32)" stroke-width="1"/>
+                                <!-- 허브 -->
+                                <circle cx="148" cy="296" r="5"
+                                        fill="rgba(0,75,130,0.95)"
+                                        stroke="rgba(0,160,230,0.85)" stroke-width="1.5"/>
+
+                                <!-- ══ 우현(STBD) 프로펠러 — 선체 내부 cx=196, cy=296 ══ -->
+                                <circle cx="196" cy="296" r="22"
+                                        fill="url(#propGrad)"
+                                        stroke="rgba(0,160,220,0.65)" stroke-width="2"/>
+                                <circle cx="196" cy="296" r="16"
+                                        fill="none"
+                                        stroke="rgba(0,120,180,0.35)" stroke-width="1.2"/>
+                                <circle cx="196" cy="296" r="10"
+                                        fill="none"
+                                        stroke="rgba(0,100,160,0.22)" stroke-width="1"/>
+                                <!-- 블레이드 -->
+                                <line x1="196" y1="274" x2="196" y2="318" stroke="rgba(0,190,240,0.50)" stroke-width="1.3"/>
+                                <line x1="174" y1="296" x2="218" y2="296" stroke="rgba(0,190,240,0.50)" stroke-width="1.3"/>
+                                <line x1="180" y1="280" x2="212" y2="312" stroke="rgba(0,180,230,0.32)" stroke-width="1"/>
+                                <line x1="212" y1="280" x2="180" y2="312" stroke="rgba(0,180,230,0.32)" stroke-width="1"/>
+                                <!-- 허브 -->
+                                <circle cx="196" cy="296" r="5"
+                                        fill="rgba(0,75,130,0.95)"
+                                        stroke="rgba(0,160,230,0.85)" stroke-width="1.5"/>
+                            </svg>
+                            <!-- 선미: KORT NOZZLE 원 2개 (화살표 내장) -->
+                            <div class="ship-stern-area">
+
+                                <!-- PORT KORT NOZZLE + 추력 화살표 -->
+                                <div class="nozzle-wrap" id="portThrustWrap">
+                                    <svg id="portThrustMark" viewBox="-30 -30 60 60" width="120" height="120"
+                                         style="transition: transform 0.35s ease; overflow: visible;">
+                                        <polygon id="portArrowPoly"
+                                            points="0,16 8,2 4,2 4,-14 -4,-14 -4,2 -8,2"
+                                            fill="#ffee88"/>
+                                    </svg>
+                                    <!-- 엔진 글로우: 파티클 spawn 기준점 (노즐 SVG 정중앙) -->
+                                    <div class="engine-glow port-engine" id="propLeft"></div>
+                                    <div class="thrust-mark-label" id="portSteerLabel">0°</div>
+                                </div>
+
+                                <!-- STBD KORT NOZZLE + 추력 화살표 -->
+                                <div class="nozzle-wrap" id="stbdThrustWrap">
+                                    <svg id="stbdThrustMark" viewBox="-30 -30 60 60" width="120" height="120"
+                                         style="transition: transform 0.35s ease; overflow: visible;">
+                                        <polygon id="stbdArrowPoly"
+                                            points="0,16 8,2 4,2 4,-14 -4,-14 -4,2 -8,2"
+                                            fill="#ffee88"/>
+                                    </svg>
+                                    <!-- 엔진 글로우: 파티클 spawn 기준점 (노즐 SVG 정중앙) -->
+                                    <div class="engine-glow stbd-engine" id="propRight"></div>
+                                    <div class="thrust-mark-label right-label" id="stbdSteerLabel">0°</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="play-control">
+                        <button class="play-toggle-btn" id="playToggleBtn" onclick="toggleMotion()">
+                            ▶ PLAY MOTION
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Note 2 -->
+                <div class="note-panel note-panel-right">
+                    <div class="note-title">Note 2;</div>
+                    <div class="note-subtitle">STEERING LEVER CONTROL</div>
+                    <div class="note-body">
+                        <div class="scenario-table">
+                            <div class="scenario-header">
+                                <span>PORT SIDE M/E</span><span>STARBOARD SIDE M/E</span>
+                            </div>
+                            <div class="scenario-row">
+                                <span>AHEAD 90</span><span>AHEAD 90</span>
+                                <div class="scenario-result">
+                                <p style="text-align: center;">STEADY AHEAD</p></div>
+                            </div>
+                            <div class="scenario-row">
+                                <span>AHEAD 45</span><span>AHEAD 45</span>
+                                <div class="scenario-result"><p style="text-align: center;">STEADY AHEAD SLOW</p></div>
+                            </div>
+                            <div class="scenario-row">
+                                <span>0 / 0</span><span>=STOP</span>
+                                <div class="scenario-result"><p style="text-align: center;">ANY ENGINE POWER</p></div>
+                            </div>
+                            <div class="scenario-row">
+                                <span>ASTERN 90</span><span>ASTERN 90</span>
+                                <div class="scenario-result"><p style="text-align: center;">STEADY ASTERN</p></div>
+                            </div>
+                            <div class="scenario-row">
+                                <span>ASTERN 45</span><span>ASTERN 45</span>
+                                <div class="scenario-result"><p style="text-align: center;">STEADY ASTERN SLOW</p></div>
+                            </div>
+                            <div class="scenario-row">
+                                <span>ASTERN 90</span><span>ASTERN 90</span>
+                                <div class="scenario-result"><p style="text-align: center;">STEADY ASTERN</p></div>
+                            </div>
+                            <div class="scenario-row highlight-stbd">
+                                <span>AHEAD 40~35</span><span>ASTERN 35~30</span>
+                                <div class="scenario-result"><p style="text-align: center;">SLIDING TO STARBOARD</p></div>
+                            </div>
+                            <div class="scenario-row highlight-port">
+                                <span>ASTERN 35~30</span><span>AHEAD 40~35</span>
+                                <div class="scenario-result"><p style="text-align: center;">SLIDING TO PORT</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hidden sliders for JavaScript compatibility -->
+            <div style="display: none;">
+                <input type="range" id="portGovernor" min="0" max="10" value="0" step="1">
+                <input type="range" id="stbdGovernor" min="0" max="10" value="0" step="1">
+                <input type="range" id="portRudder" min="-90" max="90" value="0" step="1">
+                <input type="range" id="stbdRudder" min="-90" max="90" value="0" step="1">
+                <input type="range" id="portCPP" min="-22" max="27" value="0" step="0.1">
+                <input type="range" id="stbdCPP" min="-22" max="27" value="0" step="0.1">
+                <select id="portClutch"><option value="ON">ON</option><option value="OFF">OFF</option></select>
+                <select id="stbdClutch"><option value="ON">ON</option><option value="OFF">OFF</option></select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const elements = {
+            portCPP: document.getElementById('portCPP'),
+            portRudder: document.getElementById('portRudder'),
+            portClutch: document.getElementById('portClutch'),
+            portGovernor: document.getElementById('portGovernor'),
+            stbdCPP: document.getElementById('stbdCPP'),
+            stbdRudder: document.getElementById('stbdRudder'),
+            stbdClutch: document.getElementById('stbdClutch'),
+            stbdGovernor: document.getElementById('stbdGovernor'),
+            portCPPValue: document.getElementById('portCPPValue'),
+            portRudderValue: document.getElementById('portRudderValue'),
+            portGovernorValue: document.getElementById('portGovernorValue'),
+            portRPM: document.getElementById('portRPM'),
+            portDirection: document.getElementById('portDirection'),
+            stbdCPPValue: document.getElementById('stbdCPPValue'),
+            stbdRudderValue: document.getElementById('stbdRudderValue'),
+            stbdGovernorValue: document.getElementById('stbdGovernorValue'),
+            stbdRPM: document.getElementById('stbdRPM'),
+            stbdDirection: document.getElementById('stbdDirection'),
+            directionDisplay: document.getElementById('directionDisplay'),
+            directionArrow: document.getElementById('directionArrow'),
+            shipElement: document.getElementById('shipElement'),
+            propLeft: document.getElementById('propLeft'),
+            propRight: document.getElementById('propRight')
+        };
+
+        // Motion state
+        let isMotionPlaying = false;
+        let motionAnimationFrame = null;
+        let lastTimestamp = null;
+
+        // ════════════════════════════════════════════════════
+        // 매뉴얼 기반 물리 상태
+        // ════════════════════════════════════════════════════
+        const PHYSICS = {
+            // CPP 응답 속도 (매뉴얼: 0→10° = 4초, 0→20° = 9초 → ≈2.25°/s)
+            CPP_RATE: 2.25,        // degrees per second
+            // CLUTCH 지연 (매뉴얼: OFF→ON 약 3초)
+            CLUTCH_DELAY: 3.0,     // seconds
+            // 최대 RPM (Gov=10)
+            RPM_MAX: 760,
+            RPM_MIN: 410,
+            // 추력 스케일
+            THRUST_SCALE: 0.06,
+            // 관성 (선박 질량감)
+            DRAG_LINEAR: 0.985,
+            DRAG_ROTARY: 0.980,
+            // 최대 속도 (px/frame)
+            VEL_MAX: 3.0,
+            ROT_MAX: 1.5,
+            // 경계 (560px 컨테이너 → 반폭 280px, 여유 40px)
+            BOUNDARY: 280
+        };
+
+        // 현재 물리 상태
+        let ship = {
+            x: 0, y: 0, rot: 0,
+            velX: 0, velY: 0, rotVel: 0
+        };
+
+        // CPP 실제 각도 (슬라이더와 별개로 지연 적용)
+        let cppState = {
+            portActual: 0, portTarget: 0,
+            stbdActual: 0, stbdTarget: 0
+        };
+
+        // CLUTCH 지연 상태
+        let clutchState = {
+            portEngaged: true,   // 실제 체결 상태
+            stbdEngaged: true,
+            portTimer: 0,        // 남은 지연 시간(초)
+            stbdTimer: 0
+        };
+
+        // 연결선: 마크 → 선박 현재 위치 동적 업데이트
+
+        // ════════════════════════════════════════════════════
+        // 핵심 추력 벡터 계산 (물리 검증 완료)
+        //
+        // 조타각 약속: +값=AHEAD(전진), -값=ASTERN(후진)
+        // 레버 규칙: AH90=최대전진, 0=정지, AS90=최대후진
+        //
+        // 검증 시나리오:
+        //  AH90/AH90 → fwd=sin90+sin90=+2  lat=0  → STEADY AHEAD ✓
+        //  AS90/AS90 → fwd=sin(-90)+sin(-90)=-2  lat=0  → STEADY ASTERN ✓
+        //  0/0       → fwd=sin0+sin0=0  lat=0  → STOP ✓
+        //  P:AH90/S:AH45 → netYaw=sin90-sin45=0.29 > 0 → TURNING STARBOARD ✓
+        //  P:AS35/S:AH40 → netFwd≈0, netLat=sin35+sin40=1.217 → SLIDING PORT ✓
+        //  P:AH40/S:AS35 → netFwd≈0, netLat=sin40+sin35=1.217 → SLIDING STBD ✓
+        //
+        // fwd  = sin(α)×t   (AH=+값 → +, AS=-값 → -)
+        // lat  = (PORT:+1 / STBD:-1) × sin(α)×t
+        //   → netLat = sin(portSteer)·tP − sin(stbdSteer)·tS
+        //   → netFwd = sin(portSteer)·tP + sin(stbdSteer)·tS
+        // ════════════════════════════════════════════════════
+     
+        function computeThrust(steerDeg, cppDeg, rpmFactor, isStbd) {
+            const steerRad = steerDeg * Math.PI / 180;
+             const power = (Math.abs(cppDeg) / 27) * rpmFactor;
+             const dir = cppDeg >= 0 ? 1 : -1; const thrust = power * dir;
+             const fwd = Math.cos(steerRad) * thrust;
+             const lat = Math.sin(steerRad) * thrust;
+    return { fwd, lat };
+}
+
+
+
+ function computeThrust(steerDeg, cppDeg, rpmFactor, isStbd) {
+    const steerRad = steerDeg * Math.PI / 180;
+    const cppMag   = Math.abs(cppDeg) / 27;
+    const cppSign  = cppDeg >= 0 ? 1 : -1;
+    const t        = cppMag * rpmFactor * cppSign;
+
+    // ✅ 전진/후진은 sin (AH90° → sin90=1 → 최대 전진, AH0° → sin0=0 → 전진 없음)
+    // 조타각 약속: +값=AHEAD, -값=ASTERN  /  sin(-θ)=-sin(θ) → ASTERN 자동 반전
+    const fwd  = Math.sin(steerRad) * t;
+
+    // ✅ 횡이동은 동일하게 sin 기반, PORT/STBD 대칭 반전
+    //   PORT AH40  → lat = +sin(40°)·t → STBD 방향
+    //   STBD AS35  → lat = -sin(-35°)·t = +sin(35°)·t → STBD 방향
+    //   ∴ netLat = sin(40°)+sin(35°) >> netFwd ≈ 0  →  SLIDING TO STBD ✓
+    const latBase = Math.sin(steerRad) * t;
+    const lat  = (isStbd ? -1 : 1) * latBase;
+
+    return { fwd, lat };
+}
+
+
+        function updateShipVisual(portSteer, stbdSteer, portCPP, stbdCPP, portRPM, stbdRPM, portOn, stbdOn) {
+
+            // ── 추력 계산 ──
+            const portRpmF = portOn ? portRPM / PHYSICS.RPM_MAX : 0;
+            const stbdRpmF = stbdOn ? stbdRPM / PHYSICS.RPM_MAX : 0;
+
+            const tP = computeThrust(portSteer, portCPP, portRpmF, false);
+            const tS = computeThrust(stbdSteer, stbdCPP, stbdRpmF, true);
+
+            const netFwd = tP.fwd + tS.fwd;
+            const netLat = tP.lat + tS.lat;
+            // 회두: 출력 절대값 차이 (매뉴얼: 출력 작은 쪽으로 선수 회두)
+            // 최종 공식: abs(tS)-abs(tP) × fwdSign
+            // 전진: 큰쪽 방향으로 회두 / 후진: 큰쪽 반대로 선미 이동
+            const netYaw = Math.abs(tS.fwd) - Math.abs(tP.fwd);
+
+            // ── 모션 목표 갱신 (PLAY 중일 때 animateMotion이 사용) ──
+            ship._targetFwd = netFwd;
+            ship._targetLat = netLat;
+            ship._targetYaw = netYaw;
+
+            // ── 방향 표시 업데이트 ──
+            const TH = 0.04;  // 유효 추력 임계값
+            let dirText = '', arrowRot = 0, arrowColor = '#00d4ff';
+
+            const absF = Math.abs(netFwd), absL = Math.abs(netLat);
+            
+            // 슬라이딩 각도 임계값 (사용자 요구사항)
+            const AHEAD_ANGLE_LIMIT = 40;   // 전진 35~40도 → 40도 이상에서 회전
+            const ASTERN_ANGLE_LIMIT = 35;  // 후진 30~35도 → 35도 이상에서 회전
+            
+            // 슬라이딩 가능 조건: 한쪽 전진, 한쪽 후진 & 각도 임계값 이하
+            const isOppositeDirection = (portSteer > 0 && stbdSteer < 0) || (portSteer < 0 && stbdSteer > 0);
+            const maxAheadAngle = Math.max(portSteer, stbdSteer);
+            const maxAsternAngle = Math.abs(Math.min(portSteer, stbdSteer));
+            const withinSlideLimit = maxAheadAngle <= AHEAD_ANGLE_LIMIT && maxAsternAngle <= ASTERN_ANGLE_LIMIT;
+            const canSlide = isOppositeDirection && withinSlideLimit;
+
+            if (absF < TH && absL < TH) {
+                dirText = 'STOP  (정지)';
+                arrowRot = 0; arrowColor = '#888';
+            } else if (absL > absF * 1.5 && canSlide) {
+                // 횡이동 우세 (각도가 임계값 이하일 때만)
+                if (netLat > 0) {
+                    dirText = 'SLIDING TO STARBOARD  (우현 횡이동)';
+                    arrowRot = 90; arrowColor = '#4af';
+                } else {
+                    dirText = 'SLIDING TO PORT  (좌현 횡이동)';
+                    arrowRot = -90; arrowColor = '#fa4';
+                }
+            } else {
+                // 전진 / 후진 우세 (각도가 크거나 출력 차이가 크면 회전)
+                if (netFwd > 0) {
+                    if (netYaw >  0.05) { dirText = 'TURNING STARBOARD AHEAD  (우현 전진 회두)'; arrowRot =  30; }
+                    else if (netYaw < -0.05) { dirText = 'TURNING PORT AHEAD  (좌현 전진 회두)'; arrowRot = -30; }
+                    else { dirText = absF > 0.3 ? 'STEADY AHEAD  (직진 전진)' : 'AHEAD SLOW  (저속 전진)'; arrowRot = 0; }
+                    arrowColor = '#00ff88';
+                } else {
+                    if (netYaw >  0.05) { dirText = 'TURNING STARBOARD ASTERN  (우현 후진 회두)'; arrowRot =  150; }
+                    else if (netYaw < -0.05) { dirText = 'TURNING PORT ASTERN  (좌현 후진 회두)'; arrowRot = -150; }
+                    else { dirText = absF > 0.3 ? 'STEADY ASTERN  (직진 후진)' : 'ASTERN SLOW  (저속 후진)'; arrowRot = 180; }
+                    arrowColor = '#ff4444';
+                }
+            }
+
+            if (elements.directionDisplay) elements.directionDisplay.textContent = dirText;
+            const arrowSvg  = document.querySelector('#directionArrow svg');
+            const arrowPath = document.querySelector('#directionArrow path');
+            if (arrowSvg)  arrowSvg.style.transform  = `rotate(${arrowRot}deg)`;
+            if (arrowPath) arrowPath.setAttribute('fill', arrowColor);
+
+            // ── 프로펠러(엔진) 발광 ──
+            const portI = Math.min(1, Math.abs(portCPP) / 27);
+            const stbdI = Math.min(1, Math.abs(stbdCPP) / 27);
+
+            const portColor = portOn ? (portCPP > 0 ? `0,255,136` : portCPP < 0 ? `255,68,68` : `0,212,255`) : `50,50,50`;
+            const stbdColor = stbdOn ? (stbdCPP > 0 ? `0,255,136` : stbdCPP < 0 ? `255,68,68` : `0,212,255`) : `50,50,50`;
+
+            if (elements.propLeft) {
+                elements.propLeft.style.background   = `rgba(${portColor},${0.7+portI*0.3})`;
+                elements.propLeft.style.boxShadow    = portOn ? `0 0 ${8+12*portI}px rgba(${portColor},0.9)` : 'none';
+            }
+            if (elements.propRight) {
+                elements.propRight.style.background  = `rgba(${stbdColor},${0.7+stbdI*0.3})`;
+                elements.propRight.style.boxShadow   = stbdOn ? `0 0 ${8+12*stbdI}px rgba(${stbdColor},0.9)` : 'none';
+            }
+
+            // ── 추력 방향 화살표 회전 (STEERING 각도 연동) ──
+            //
+            // 화살표 기본 방향 = 위(↑) = 전진(AHEAD)
+            //
+            // PORT 회전각:  90 - steerDeg
+            //   steer=+90(AH) → rot=  0° → ↑ (전진) ✓
+            //   steer=  0     → rot= 90° → → (우현측력) ✓
+            //   steer=-90(AS) → rot=180° → ↓ (후진) ✓
+            //
+            // STBD 회전각:  steerDeg - 90  (좌우 대칭)
+            //   steer=+90(AH) → rot=  0° → ↑ (전진) ✓
+            //   steer=  0     → rot=-90° → ← (좌현측력) ✓
+            //   steer=-90(AS) → rot=180° → ↓ (후진) ✓
+            //
+            // 레버 아래(AH/-값)→0°=↓(추력 후방=전진), 레버 위(AS/+값)→180°=↑(추력 전방=후진)
+            const portCppFlip  = portCPP  < 0 ? 180 : 0;
+            const stbdCppFlip  = stbdCPP  < 0 ? 180 : 0;
+            const portArrowRot = (90  - portSteer) + portCppFlip;
+            const stbdArrowRot = (stbdSteer - 90)  + stbdCppFlip;
+
+            const portMark = document.getElementById('portThrustMark');
+            const stbdMark = document.getElementById('stbdThrustMark');
+            const portPoly = document.getElementById('portArrowPoly');
+            const stbdPoly = document.getElementById('stbdArrowPoly');
+            const portLbl  = document.getElementById('portSteerLabel');
+            const stbdLbl  = document.getElementById('stbdSteerLabel');
+
+            // PORT 화살표 회전 + 색상 (OFF=옅은노랑, ON+AH=청색, ON+AS=빨간색)
+            if (portMark) portMark.style.transform = `rotate(${portArrowRot}deg)`;
+            const pOn = portOn;
+            let pFill, pGlow;
+            if (pOn) {
+                if (portCPP >= 0) {
+                    // AH 전진: 밝은 하늘색 → 짙은 청색
+                    const pRatio = Math.min(portCPP / 27, 1);
+                    const pR = Math.round(136 - 136 * pRatio);
+                    const pG = Math.round(238 - 136 * pRatio);
+                    const pB = 255;
+                    pFill = `rgb(${pR},${pG},${pB})`;
+                    pGlow = `drop-shadow(0 0 ${4 + 10 * pRatio}px ${pFill})`;
+                } else {
+                    // AS 후진: 밝은 분홍 → 짙은 빨강
+                    const pRatio = Math.min(Math.abs(portCPP) / 22, 1);
+                    const pR = 255;
+                    const pG = Math.round(170 - 140 * pRatio);
+                    const pB = Math.round(170 - 140 * pRatio);
+                    pFill = `rgb(${pR},${pG},${pB})`;
+                    pGlow = `drop-shadow(0 0 ${4 + 10 * pRatio}px ${pFill})`;
+                }
+            } else {
+                pFill = '#ffee88';
+                pGlow = 'drop-shadow(0 0 3px #ffee88)';
+            }
+            if (portPoly) portPoly.setAttribute('fill', pFill);
+            if (portMark) portMark.style.filter = pGlow;
+
+            // STBD 화살표 회전 + 색상 (OFF=옅은노랑, ON+AH=청색, ON+AS=빨간색)
+            if (stbdMark) stbdMark.style.transform = `rotate(${stbdArrowRot}deg)`;
+            const sOn = stbdOn;
+            let sFill, sGlow;
+            if (sOn) {
+                if (stbdCPP >= 0) {
+                    // AH 전진: 밝은 하늘색 → 짙은 청색
+                    const sRatio = Math.min(stbdCPP / 27, 1);
+                    const sR = Math.round(136 - 136 * sRatio);
+                    const sG = Math.round(238 - 136 * sRatio);
+                    const sB = 255;
+                    sFill = `rgb(${sR},${sG},${sB})`;
+                    sGlow = `drop-shadow(0 0 ${4 + 10 * sRatio}px ${sFill})`;
+                } else {
+                    // AS 후진: 밝은 분홍 → 짙은 빨강
+                    const sRatio = Math.min(Math.abs(stbdCPP) / 22, 1);
+                    const sR = 255;
+                    const sG = Math.round(170 - 140 * sRatio);
+                    const sB = Math.round(170 - 140 * sRatio);
+                    sFill = `rgb(${sR},${sG},${sB})`;
+                    sGlow = `drop-shadow(0 0 ${4 + 10 * sRatio}px ${sFill})`;
+                }
+            } else {
+                sFill = '#ffee88';
+                sGlow = 'drop-shadow(0 0 3px #ffee88)';
+            }
+            if (stbdPoly) stbdPoly.setAttribute('fill', sFill);
+            if (stbdMark) stbdMark.style.filter = sGlow;
+
+            // 각도 라벨: 레버 위(양수)=AH, 아래(음수)=AS
+            const fmtSteer = v => {
+                const n = Math.round(v);
+                if (n > 0) return `AH ${n}°`;
+                if (n < 0) return `AS ${Math.abs(n)}°`;
+                return '0°';
+            };
+            if (portLbl) portLbl.textContent = fmtSteer(portSteer);
+            if (stbdLbl) stbdLbl.textContent = fmtSteer(stbdSteer);
+
+            if (!isMotionPlaying) {
+                ship.x = 0; ship.y = 0; ship.rot = 0;
+                ship.velX = 0; ship.velY = 0; ship.rotVel = 0;
+                if (elements.shipElement)
+                    elements.shipElement.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+            }
+        }
+
+        function checkWarnings(portCPP, stbdCPP, portGov, stbdGov) {
+            // 경고 박스가 없으면 무시
+            const warningBox  = document.getElementById('warningBox');
+            const warningText = document.getElementById('warningText');
+            if (!warningBox || !warningText) return;
+            const warnings = [];
+            if (Math.abs(portCPP) > 22 || Math.abs(stbdCPP) > 22)
+                warnings.push('⚠ CPP Angle Excessive!');
+            if (portGov > 5 || stbdGov > 5)
+                warnings.push('⚠ Governor High! Port/Entry: 1-5 Recommended');
+            if (warnings.length > 0) {
+                warningBox.style.display = 'block';
+                warningText.textContent  = warnings.join(' | ');
+            } else {
+                warningBox.style.display = 'none';
+            }
+        }
+
+        // Apply preset scenarios
+        function applyScenario(type) {
+            switch(type) {
+                case 'straight':
+                    // AHEAD 90/AHEAD 90 → STEADY AHEAD (Note 2)
+                    elements.portCPP.value = 20;
+                    elements.stbdCPP.value = 20;
+                    elements.portRudder.value = 90;   // AHEAD 90° = 최대 전진
+                    elements.stbdRudder.value = 90;   // AHEAD 90° = 최대 전진
+                    elements.portGovernor.value = 4;
+                    elements.stbdGovernor.value = 4;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'slideLeft':
+                    // PORT ASTERN 35 / STBD AHEAD 40 → SLIDING TO PORT (Note 2)
+                    elements.portCPP.value = 20;
+                    elements.stbdCPP.value = 20;
+                    elements.portRudder.value = -35;  // PORT ASTERN 35°
+                    elements.stbdRudder.value = 40;   // STBD AHEAD 40°
+                    elements.portGovernor.value = 4;
+                    elements.stbdGovernor.value = 4;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'slideRight':
+                    // PORT AHEAD 40 / STBD ASTERN 35 → SLIDING TO STARBOARD (Note 2)
+                    elements.portCPP.value = 20;
+                    elements.stbdCPP.value = 20;
+                    elements.portRudder.value = 40;   // PORT AHEAD 40°
+                    elements.stbdRudder.value = -35;  // STBD ASTERN 35°
+                    elements.portGovernor.value = 4;
+                    elements.stbdGovernor.value = 4;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'turnRight':
+                    // PORT AHEAD 90 / STBD AHEAD 45 → 우현 회두 전진 (Note 1: 출력 작은 쪽으로 회두)
+                    elements.portCPP.value = 20;
+                    elements.stbdCPP.value = 20;
+                    elements.portRudder.value = 90;   // PORT AHEAD 90°
+                    elements.stbdRudder.value = 45;   // STBD AHEAD 45° (작은 출력 → 우현 회두)
+                    elements.portGovernor.value = 4;
+                    elements.stbdGovernor.value = 4;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'turnLeft':
+                    // PORT AHEAD 45 / STBD AHEAD 90 → 좌현 회두 전진 (Note 1)
+                    elements.portCPP.value = 20;
+                    elements.stbdCPP.value = 20;
+                    elements.portRudder.value = 45;   // PORT AHEAD 45° (작은 출력 → 좌현 회두)
+                    elements.stbdRudder.value = 90;   // STBD AHEAD 90°
+                    elements.portGovernor.value = 4;
+                    elements.stbdGovernor.value = 4;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'docking':
+                    // 저속 전진: AHEAD 45/45 (Note 2: AHEAD 45/AHEAD 45 = STEADY AHEAD SLOW)
+                    elements.portCPP.value = 10;
+                    elements.stbdCPP.value = 10;
+                    elements.portRudder.value = 45;   // AHEAD 45° 저속
+                    elements.stbdRudder.value = 45;   // AHEAD 45° 저속
+                    elements.portGovernor.value = 1;
+                    elements.stbdGovernor.value = 1;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+                case 'emergency':
+                    // ASTERN 90/90 → STEADY ASTERN (긴급 후진)
+                    elements.portCPP.value = -20;
+                    elements.stbdCPP.value = -20;
+                    elements.portRudder.value = -90;  // ASTERN 90° = 최대 후진
+                    elements.stbdRudder.value = -90;  // ASTERN 90° = 최대 후진
+                    elements.portGovernor.value = 8;
+                    elements.stbdGovernor.value = 8;
+                    elements.portClutch.value = 'ON';
+                    elements.stbdClutch.value = 'ON';
+                    break;
+            }
+            updateDisplayValues();
+            calculate();
+            // ── CPP Actual을 즉시 Target과 동기화 (18초 지연 방지) ──
+            cppState.portActual  = parseFloat(elements.portCPP.value);
+            cppState.stbdActual  = parseFloat(elements.stbdCPP.value);
+            cppState.portTarget  = cppState.portActual;
+            cppState.stbdTarget  = cppState.stbdActual;
+            // ── 모든 레버 핸들 시각 동기화 ──
+            syncAllLevers();
+            // 입력창 동기화
+            syncSteerInputsFromLevers();
+            // ── 조타각 VALUE BOX 표시 텍스트 동기화 ──
+            (function syncSteerDisplayTexts() {
+                const fmt = v => {
+                    const n = Math.round(v);
+                    if (n > 0) return 'AH ' + n + '°';
+                    if (n < 0) return 'AS ' + Math.abs(n) + '°';
+                    return '0°';
+                };
+                const pD = document.getElementById('portSteeringAngle');
+                const sD = document.getElementById('stbdSteeringAngle');
+                const pV = parseFloat(elements.portRudder.value);
+                const sV = parseFloat(elements.stbdRudder.value);
+                if (pD) pD.textContent = fmt(pV);
+                if (sD) sD.textContent = fmt(sV);
+            })();
+            // ── CPP 입력창 동기화 ──
+            (function syncCPPInputs() {
+                const pI = document.getElementById('portCPPInput');
+                const sI = document.getElementById('stbdCPPInput');
+                const pD = document.getElementById('portCPPValue2');
+                const sD = document.getElementById('stbdCPPValue2');
+                const fmtDisp = v => v > 0 ? 'AH ' + v.toFixed(1) : v < 0 ? 'AS ' + Math.abs(v).toFixed(1) : '0';
+                const pV = parseFloat(elements.portCPP.value);
+                const sV = parseFloat(elements.stbdCPP.value);
+                if (pI) pI.value = pV.toFixed(1);
+                if (sI) sI.value = sV.toFixed(1);
+                if (pD) pD.textContent = fmtDisp(pV);
+                if (sD) sD.textContent = fmtDisp(sV);
+            })();
+        }
+
+        // 모든 레버 핸들 위치를 현재 input value에 맞게 즉시 갱신
+        function syncAllLevers() {
+            function setHandle(handleId, value, minVal, maxVal) {
+                const hndl = document.getElementById(handleId);
+                if (!hndl) return;
+                const maxY = 42;
+                const norm = (value - minVal) / (maxVal - minVal);
+                const dy   = -(norm * 2 - 1) * maxY;
+                hndl.style.top = `calc(50% + ${dy}px)`;
+            }
+            setHandle('portSteeringLever', parseFloat(elements.portRudder.value),   -90, 90);
+            setHandle('stbdSteeringLever', parseFloat(elements.stbdRudder.value),   -90, 90);
+            setHandle('portCPPLever',      parseFloat(elements.portCPP.value),      -22, 27);
+            setHandle('stbdCPPLever',      parseFloat(elements.stbdCPP.value),      -22, 27);
+            setHandle('portGovernorLever', parseFloat(elements.portGovernor.value),   0, 10);
+            setHandle('stbdGovernorLever', parseFloat(elements.stbdGovernor.value),   0, 10);
+        }
+
+        function syncSteerInputsFromLevers() {
+            const pInp = document.getElementById('portSteerInput');
+            const sInp = document.getElementById('stbdSteerInput');
+            const pVal = Math.round(parseFloat(elements.portRudder.value));
+            const sVal = Math.round(parseFloat(elements.stbdRudder.value));
+            if (pInp) pInp.value = pVal;
+            if (sInp) sInp.value = sVal;
+            // 레버 핸들 위치도 갱신
+            ['port','stbd'].forEach(side => {
+                const val  = side === 'port' ? pVal : sVal;
+                const hndl = document.getElementById(side + 'SteeringLever');
+                if (!hndl) return;
+                const maxY = 42;
+                const norm = (val - (-90)) / 180;
+                const dy   = -(norm * 2 - 1) * maxY;
+                hndl.style.top = `calc(50% + ${dy}px)`;
+            });
+        }
+
+        // Toggle motion animation
+        function toggleMotion() {
+            const btn = document.getElementById('playToggleBtn');
+            if (isMotionPlaying) {
+                isMotionPlaying = false;
+                if (motionAnimationFrame) { cancelAnimationFrame(motionAnimationFrame); motionAnimationFrame = null; }
+                ship.x = 0; ship.y = 0; ship.rot = 0;
+                ship.velX = 0; ship.velY = 0; ship.rotVel = 0;
+                if (elements.shipElement)
+                    elements.shipElement.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+                btn.textContent = '▶ PLAY MOTION';
+                btn.classList.remove('playing');
+            } else {
+                isMotionPlaying = true;
+                ship.x = 0; ship.y = 0; ship.rot = 0;
+                ship.velX = 0; ship.velY = 0; ship.rotVel = 0;
+                // PLAY 시작 시 CPP actual을 현재 슬라이더 값으로 즉시 동기화
+                cppState.portActual = parseFloat(elements.portCPP.value);
+                cppState.stbdActual = parseFloat(elements.stbdCPP.value);
+                cppState.portTarget = cppState.portActual;
+                cppState.stbdTarget = cppState.stbdActual;
+                lastTimestamp = null;
+                btn.textContent = '⏸ PAUSE MOTION';
+                btn.classList.add('playing');
+                motionAnimationFrame = requestAnimationFrame(animateMotion);
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // 메인 물리 통합 루프 (requestAnimationFrame)
+        // 매 프레임마다:
+        //  1) CPP 지연 적용 (2.25°/s)
+        //  2) CLUTCH 체결 타이머
+        //  3) 추력 계산 → 속도 적분
+        //  4) 선박 위치/회전 업데이트
+        // ════════════════════════════════════════════════════
+        function animateMotion(timestamp) {
+            if (!isMotionPlaying) return;
+
+            const dt = lastTimestamp ? Math.min((timestamp - lastTimestamp) / 1000, 0.05) : 0.016;
+            lastTimestamp = timestamp;
+
+            // ── 1. CPP 지연 적용 ──
+            // 매뉴얼: 0→10° = 4초, 0→20° = 9초  → 평균 2.25°/s
+            const cppStep = PHYSICS.CPP_RATE * dt;
+            const moveCPP = (actual, target) => {
+                const diff = target - actual;
+                if (Math.abs(diff) <= cppStep) return target;
+                return actual + Math.sign(diff) * cppStep;
+            };
+            cppState.portActual = moveCPP(cppState.portActual, cppState.portTarget);
+            cppState.stbdActual = moveCPP(cppState.stbdActual, cppState.stbdTarget);
+
+            // ── 3. 현재 레버 상태 읽기 ──
+            const portSteer = parseFloat(elements.portRudder.value);
+            const stbdSteer = parseFloat(elements.stbdRudder.value);
+            const portGov   = parseInt(elements.portGovernor.value);
+            const stbdGov   = parseInt(elements.stbdGovernor.value);
+            const portOn    = clutchState.portEngaged && portGov > 0;
+            const stbdOn    = clutchState.stbdEngaged && stbdGov > 0;
+
+            const govToRPM  = (g) => g === 0 ? PHYSICS.RPM_MIN : PHYSICS.RPM_MIN + ((g-1)/9)*(PHYSICS.RPM_MAX-PHYSICS.RPM_MIN);
+            const portRPM   = govToRPM(portGov);
+            const stbdRPM   = govToRPM(stbdGov);
+
+            // ── 4. 추력 계산 ──
+            const tP = computeThrust(portSteer, cppState.portActual, portOn  ? portRPM/PHYSICS.RPM_MAX : 0, false);
+            const tS = computeThrust(stbdSteer, cppState.stbdActual, stbdOn ? stbdRPM/PHYSICS.RPM_MAX : 0, true);
+
+            const netFwd = tP.fwd + tS.fwd;
+            const netLat = tP.lat + tS.lat;
+            const netYaw = Math.abs(tS.fwd) - Math.abs(tP.fwd);
+
+            // ── 5. 가속도 적용 (F = m·a, 단순화) ──
+            const accel = PHYSICS.THRUST_SCALE;
+            // 선박 좌표계 → 화면 좌표계 변환 (rot 반영)
+            const rotRad  = ship.rot * Math.PI / 180;
+            const accelX  = (netLat * Math.cos(rotRad) + netFwd * Math.sin(rotRad)) * accel;
+            const accelY  = (-netFwd * Math.cos(rotRad) + netLat * Math.sin(rotRad)) * accel;
+
+            ship.velX   += accelX;
+            ship.velY   += accelY;
+            const fwdSign = netFwd >= 0 ? -1 : +1;  // 전진=-1, 후진=+1
+            ship.rotVel += netYaw * fwdSign * accel * 0.6;
+
+            // ── 6. 마찰/저항 (물의 점성) ──
+            ship.velX   *= PHYSICS.DRAG_LINEAR;
+            ship.velY   *= PHYSICS.DRAG_LINEAR;
+            ship.rotVel *= PHYSICS.DRAG_ROTARY;
+
+            // ── 7. 최대 속도 클램프 ──
+            const spd = Math.hypot(ship.velX, ship.velY);
+            if (spd > PHYSICS.VEL_MAX) {
+                ship.velX *= PHYSICS.VEL_MAX / spd;
+                ship.velY *= PHYSICS.VEL_MAX / spd;
+            }
+            ship.rotVel = Math.max(-PHYSICS.ROT_MAX, Math.min(PHYSICS.ROT_MAX, ship.rotVel));
+
+            // ── 8. 위치/회전 적분 ──
+            ship.x   += ship.velX;
+            ship.y   += ship.velY;
+            ship.rot += ship.rotVel;
+
+            // ── 9. 경계 반사 ──
+            const B = PHYSICS.BOUNDARY;
+            if (Math.abs(ship.x) > B) { ship.x = Math.sign(ship.x)*B; ship.velX *= -0.3; }
+            if (Math.abs(ship.y) > B) { ship.y = Math.sign(ship.y)*B; ship.velY *= -0.3; }
+
+            // ── 10. 선박 DOM 변환 ──
+            if (elements.shipElement)
+                elements.shipElement.style.transform =
+                    `translate(calc(-50% + ${ship.x}px), calc(-50% + ${ship.y}px)) rotate(${ship.rot}deg)`;
+
+            // ── 11. 표시 갱신 (CPP 실제 각도 반영) ──
+            updateShipVisual(portSteer, stbdSteer, cppState.portActual, cppState.stbdActual, portRPM, stbdRPM, portOn, stbdOn);
+
+            // CPP 실제 값 카드 업데이트
+            const pv = document.getElementById('portCPPValue2');
+            const sv = document.getElementById('stbdCPPValue2');
+            const fmtCPP = v => v >= 0 ? (v < 0.1 ? '0' : `AH ${v.toFixed(1)}`) : `AS ${Math.abs(v).toFixed(1)}`;
+            if (pv) pv.textContent = fmtCPP(cppState.portActual);
+            if (sv) sv.textContent = fmtCPP(cppState.stbdActual);
+
+            motionAnimationFrame = requestAnimationFrame(animateMotion);
+        }
+
+        // Update display values
+        function updateDisplayValues() {
+            // Port CPP 표시
+            const portCPPVal = parseFloat(elements.portCPP.value);
+            if (elements.portCPPValue) {
+                if (portCPPVal >= 0) {
+                    elements.portCPPValue.textContent = portCPPVal === 0 ? '0' : 'AH ' + portCPPVal.toFixed(1) + '°';
+                } else {
+                    elements.portCPPValue.textContent = 'AS ' + Math.abs(portCPPVal).toFixed(1) + '°';
+                }
+            }
+            
+            // STBD CPP 표시
+            const stbdCPPVal = parseFloat(elements.stbdCPP.value);
+            if (elements.stbdCPPValue) {
+                if (stbdCPPVal >= 0) {
+                    elements.stbdCPPValue.textContent = stbdCPPVal === 0 ? '0' : 'AH ' + stbdCPPVal.toFixed(1) + '°';
+                } else {
+                    elements.stbdCPPValue.textContent = 'AS ' + Math.abs(stbdCPPVal).toFixed(1) + '°';
+                }
+            }
+            
+            if (elements.portRudderValue) elements.portRudderValue.textContent = elements.portRudder.value + '°';
+            if (elements.portGovernorValue) elements.portGovernorValue.textContent = elements.portGovernor.value;
+            if (elements.stbdRudderValue) elements.stbdRudderValue.textContent = elements.stbdRudder.value + '°';
+            if (elements.stbdGovernorValue) elements.stbdGovernorValue.textContent = elements.stbdGovernor.value;
+        }
+
+        // Main calculation function
+        function calculate() {
+            // ── 슬라이더에서 목표값 읽기 ──
+            const portSteer = parseFloat(elements.portRudder.value);   // +AHEAD / -ASTERN
+            const stbdSteer = parseFloat(elements.stbdRudder.value);
+            const portGovernorVal = parseInt(elements.portGovernor.value);
+            const stbdGovernorVal = parseInt(elements.stbdGovernor.value);
+
+            // CPP 목표 각도 업데이트 (실제 각도는 animateMotion에서 지연 적용)
+            cppState.portTarget = parseFloat(elements.portCPP.value);
+            cppState.stbdTarget = parseFloat(elements.stbdCPP.value);
+
+            // MOTION 정지 시: CPP 실제 각도를 목표값에 즉시 동기화 (화살표 색상 반영)
+            if (!isMotionPlaying) {
+                cppState.portActual = cppState.portTarget;
+                cppState.stbdActual = cppState.stbdTarget;
+            }
+
+            // GOVERNOR 0 = CLUTCH OFF, 1~10 = CLUTCH ON (즉시)
+            const portWantsOn = portGovernorVal > 0;
+            const stbdWantsOn = stbdGovernorVal > 0;
+
+            // CLUTCH 즉시 체결 (지연 없음)
+            clutchState.portEngaged = portWantsOn;
+            clutchState.stbdEngaged = stbdWantsOn;
+            clutchState.portTimer = 0;
+            clutchState.stbdTimer = 0;
+
+            // 실제 CLUTCH 체결 상태
+            const portOn = clutchState.portEngaged && portWantsOn;
+            const stbdOn = clutchState.stbdEngaged && stbdWantsOn;
+
+            // ── RPM 계산 ──
+            // Governor 1 = 410 RPM, Governor 2 = 520 RPM, Governor 10 = 760 RPM
+            // 매뉴얼: "가바나 눈금 2 = RPM 520"
+            const govToRPM = (g) => g === 0 ? PHYSICS.RPM_MIN : PHYSICS.RPM_MIN + ((g - 1) / 9) * (PHYSICS.RPM_MAX - PHYSICS.RPM_MIN);
+            const portRPM = govToRPM(portGovernorVal);
+            const stbdRPM = govToRPM(stbdGovernorVal);
+
+            // ── CLUTCH / RPM 표시 업데이트 ──
+            const portClutchStr = portWantsOn ? 'ON' : 'OFF';
+            const stbdClutchStr = stbdWantsOn ? 'ON' : 'OFF';
+
+            const portClutchEl = document.getElementById('portClutchStatus');
+            const stbdClutchEl = document.getElementById('stbdClutchStatus');
+            if (portClutchEl) {
+                portClutchEl.textContent = 'CLUTCH: ' + portClutchStr;
+                portClutchEl.className = 'clutch-status-card ' + (portWantsOn ? 'on' : 'off');
+            }
+            if (stbdClutchEl) {
+                stbdClutchEl.textContent = 'CLUTCH: ' + stbdClutchStr;
+                stbdClutchEl.className = 'clutch-status-card ' + (stbdWantsOn ? 'on' : 'off');
+            }
+
+            const portRPMEl = document.getElementById('portRPMCard');
+            const stbdRPMEl = document.getElementById('stbdRPMCard');
+            if (portRPMEl) portRPMEl.textContent = 'RPM: ' + Math.round(portRPM);
+            if (stbdRPMEl) stbdRPMEl.textContent = 'RPM: ' + Math.round(stbdRPM);
+
+            // ── 선박 시각 업데이트 (실제 CPP 각도 사용) ──
+            updateShipVisual(
+                portSteer, stbdSteer,
+                cppState.portActual, cppState.stbdActual,
+                portRPM, stbdRPM,
+                portOn, stbdOn
+            );
+        }
+
+        // Event listeners
+        elements.portCPP.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+        elements.portRudder.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+        elements.portClutch.addEventListener('change', calculate);
+        elements.portGovernor.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+        elements.stbdCPP.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+        elements.stbdRudder.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+        elements.stbdClutch.addEventListener('change', calculate);
+        elements.stbdGovernor.addEventListener('input', () => { updateDisplayValues(); calculate(); });
+
+        // Lever Control - 자동 복귀 없음, 세로 방향
+        function setupLever(handleId, angleDisplayId, controlElement, markerElement, minValue, maxValue, isInteger) {
+            const handle = document.getElementById(handleId);
+            const angleDisplay = document.getElementById(angleDisplayId);
+            const marker = markerElement ? document.getElementById(markerElement) : null;
+            
+            let isDragging = false;
+            const maxY = 42; // 레버 최대 이동 거리 (픽셀) - 세로 방향
+            
+            function updateLever(clientY) {
+                const handleRect = handle.parentElement.getBoundingClientRect();
+                const centerY = handleRect.top + handleRect.height / 2;
+                
+                // 마우스 Y 위치에서 중심까지의 거리
+                let deltaY = clientY - centerY;
+                
+                // -maxY ~ +maxY 범위로 제한
+                deltaY = Math.max(-maxY, Math.min(maxY, deltaY));
+                
+                // 픽셀을 값으로 변환 (Y축은 위가 최대값, 아래가 최소값)
+                const range = maxValue - minValue;
+                const normalizedValue = (-deltaY / maxY + 1) / 2; // 0 ~ 1 (위: 1, 아래: 0)
+                let value = minValue + normalizedValue * range;
+                
+                if (isInteger) {
+                    value = Math.round(value);
+                }
+                
+                // 레버 핸들 위치 업데이트
+                handle.style.top = `calc(50% + ${deltaY}px)`;
+                
+                // Slider 및 표시 업데이트
+                controlElement.value = value;
+                
+                // 표시 형식
+                let displayText;
+                if (minValue === -90 && maxValue === 90) {
+                    // STEERING: 레버 위(+값)=AH, 아래(-값)=AS
+                    const steeringValue = Math.round(value);
+                    if (steeringValue > 0) {
+                        displayText = 'AH ' + steeringValue + '°';
+                    } else if (steeringValue < 0) {
+                        displayText = 'AS ' + Math.abs(steeringValue) + '°';
+                    } else {
+                        displayText = '0°';
+                    }
+                } else if (minValue === -22 && maxValue === 27) {
+                    // CPP: 각 각도 표시 (-22 AS ~ +27 AH)
+                    const cppValue = parseFloat(value);
+                    if (cppValue >= 0) {
+                        // Ahead 0~27도
+                        displayText = cppValue === 0 ? '0' : 'AH ' + cppValue.toFixed(1);
+                    } else {
+                        // Astern -22~0도
+                        displayText = 'AS ' + Math.abs(cppValue).toFixed(1);
+                    }
+                } else if (minValue === 0 && maxValue === 10) {
+                    // GOVERNOR: 0=OFF, 1~10=숫자 표시
+                    const govValue = Math.round(value);
+                    displayText = govValue === 0 ? 'OFF' : govValue;
+                } else {
+                    // 기타: 숫자 표시
+                    displayText = Math.round(value);
+                }
+                angleDisplay.textContent = displayText;
+
+                // STEERING 입력창 동기화 (레버 드래그 시)
+                if (minValue === -90 && maxValue === 90) {
+                    const inp = handleId.includes('port')
+                        ? document.getElementById('portSteerInput')
+                        : document.getElementById('stbdSteerInput');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = Math.round(value);
+                        inp.classList.remove('input-err');
+                    }
+                }
+
+                // CPP 입력창 동기화 (레버 드래그 시)
+                if (minValue === -22 && maxValue === 27) {
+                    const inp = handleId.includes('port')
+                        ? document.getElementById('portCPPInput')
+                        : document.getElementById('stbdCPPInput');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = parseFloat(value).toFixed(1);
+                        inp.classList.remove('input-err');
+                    }
+                }
+                
+                // STEERING 각도 마커 위치 업데이트
+                if (marker && minValue ===-90 && maxValue === 90) {
+                    const angle = value;
+                    const radius = 40;
+                    const angleRad = (angle * Math.PI) / 180;
+                    const markerX = Math.sin(angleRad) * radius;
+                    const markerY = -Math.cos(angleRad) * radius;
+                    marker.style.transform = `translate(calc(-50% + ${markerX}px), ${markerY}px)`;
+                }
+                
+                // 계산 즉시 업데이트
+                updateDisplayValues();
+                calculate();
+            }
+            
+            function onMouseDown(e) {
+                isDragging = true;
+                handle.style.cursor = 'grabbing';
+                e.preventDefault();
+                updateLever(e.clientY);
+            }
+            
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                updateLever(e.clientY);
+            }
+            
+            function onMouseUp() {
+                if (!isDragging) return;
+                isDragging = false;
+                handle.style.cursor = 'grab';
+                // 자동 복귀 제거 - 레버는 마지막 위치에 유지
+            }
+            
+            // 이벤트 리스너 등록
+            handle.addEventListener('mousedown', onMouseDown);
+            handle.parentElement.addEventListener('mousedown', (e) => {
+                if (e.target === handle.parentElement || e.target.classList.contains('lever-slot-vertical')) {
+                    isDragging = true;
+                    updateLever(e.clientY);
+                }
+            });
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
+            // 터치 이벤트 지원
+            handle.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                const touch = e.touches[0];
+                updateLever(touch.clientY);
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                updateLever(touch.clientY);
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchend', onMouseUp);
+            
+            // 슬라이더 변경 시 레버와 마커도 업데이트
+            controlElement.addEventListener('input', () => {
+                const value = parseFloat(controlElement.value);
+                
+                // 표시 형식
+                let displayText;
+                if (minValue === -90 && maxValue === 90) {
+                    // STEERING: 레버 위(+값)=AH, 아래(-값)=AS
+                    const steeringValue = Math.round(value);
+                    if (steeringValue > 0) {
+                        displayText = 'AH ' + steeringValue + '°';
+                    } else if (steeringValue < 0) {
+                        displayText = 'AS ' + Math.abs(steeringValue) + '°';
+                    } else {
+                        displayText = '0°';
+                    }
+                } else if (minValue === -22 && maxValue === 27) {
+                    // CPP: 각 각도 표시 (-22 AS ~ +27 AH)
+                    const cppValue = parseFloat(value);
+                    if (cppValue >= 0) {
+                        // Ahead 0~27도
+                        displayText = cppValue === 0 ? '0' : 'AH ' + cppValue.toFixed(1);
+                    } else {
+                        // Astern -22~0도
+                        displayText = 'AS ' + Math.abs(cppValue).toFixed(1);
+                    }
+                } else if (minValue === 0 && maxValue === 10) {
+                    // GOVERNOR: 0=OFF, 1~10=숫자 표시
+                    const govValue = Math.round(value);
+                    displayText = govValue === 0 ? 'OFF' : govValue;
+                } else {
+                    // 기타: 숫자 표시
+                    displayText = Math.round(value);
+                }
+                angleDisplay.textContent = displayText;
+
+                // STEERING 입력창 동기화
+                if (minValue === -90 && maxValue === 90) {
+                    const inp = handleId.includes('port')
+                        ? document.getElementById('portSteerInput')
+                        : document.getElementById('stbdSteerInput');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = Math.round(value);
+                        inp.classList.remove('input-err');
+                    }
+                }
+
+                // CPP 입력창 동기화
+                if (minValue === -22 && maxValue === 27) {
+                    const inp = handleId.includes('port')
+                        ? document.getElementById('portCPPInput')
+                        : document.getElementById('stbdCPPInput');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = parseFloat(value).toFixed(1);
+                        inp.classList.remove('input-err');
+                    }
+                }
+                
+                // 값을 픽셀 위치로 변환 (Y축)
+                const range = maxValue - minValue;
+                const normalizedValue = (value - minValue) / range; // 0 ~ 1
+                const deltaY = -(normalizedValue * 2 - 1) * maxY; // -maxY ~ +maxY (위: 음수, 아래: 양수)
+                handle.style.top = `calc(50% + ${deltaY}px)`;
+                
+                // 마커 위치 업데이트
+                if (marker && minValue === -90 && maxValue === 90) {
+                    const angle = value;
+                    const radius = 40;
+                    const angleRad = (angle * Math.PI) / 180;
+                    const markerX = Math.sin(angleRad) * radius;
+                    const markerY = -Math.cos(angleRad) * radius;
+                    marker.style.transform = `translate(calc(-50% + ${markerX}px), ${markerY}px)`;
+                }
+            });
+        }
+        
+        // 레버 초기화 - PORT
+        setupLever('portSteeringLever', 'portSteeringAngle', elements.portRudder, null, -90, 90, true);
+        setupLever('portGovernorLever', 'portGovernorValue2', elements.portGovernor, null, 0, 10, true);
+        setupLever('portCPPLever', 'portCPPValue2', elements.portCPP, null, -22, 27, false);
+        
+        // 레버 초기화 - STARBOARD
+        setupLever('stbdSteeringLever', 'stbdSteeringAngle', elements.stbdRudder, null, -90, 90, true);
+        setupLever('stbdGovernorLever', 'stbdGovernorValue2', elements.stbdGovernor, null, 0, 10, true);
+        setupLever('stbdCPPLever', 'stbdCPPValue2', elements.stbdCPP, null, -22, 27, false);
+
+        // ── STEERING 직접 각도 입력 → 레버 동기화 ──
+        function applySteerInput(inputId, leverHandleId, rudderElementId, displayId) {
+            const inp    = document.getElementById(inputId);
+            const handle = document.getElementById(leverHandleId);
+            const rudder = document.getElementById(rudderElementId);
+            const disp   = document.getElementById(displayId);
+            if (!inp || !handle || !rudder) return;
+
+            function applyValue() {
+                let v = parseInt(inp.value, 10);
+                if (isNaN(v)) { inp.classList.add('input-err'); return; }
+                v = Math.max(-90, Math.min(90, v));
+                inp.value = v;
+                inp.classList.remove('input-err');
+                inp.classList.add('input-ok');
+                setTimeout(() => inp.classList.remove('input-ok'), 600);
+
+                // range 슬라이더 값 갱신
+                rudder.value = v;
+
+                // 레버 핸들 위치 갱신: value → deltaY
+                const maxY = 42;
+                const normalizedValue = (v - (-90)) / 180; // 0~1
+                const deltaY = -(normalizedValue * 2 - 1) * maxY;
+                handle.style.top = `calc(50% + ${deltaY}px)`;
+
+                // 표시 텍스트 갱신
+                if (disp) {
+                    if (v > 0) disp.textContent = 'AH ' + v + '°';
+                    else if (v < 0) disp.textContent = 'AS ' + Math.abs(v) + '°';
+                    else disp.textContent = '0°';
+                }
+
+                updateDisplayValues();
+                calculate();
+            }
+
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { applyValue(); inp.blur(); }
+                if (e.key === 'Escape') { inp.value = Math.round(parseFloat(rudder.value)); inp.blur(); }
+            });
+            inp.addEventListener('blur', applyValue);
+        }
+
+        applySteerInput('portSteerInput', 'portSteeringLever', 'portRudder', 'portSteeringAngle');
+        applySteerInput('stbdSteerInput', 'stbdSteeringLever', 'stbdRudder', 'stbdSteeringAngle');
+
+        // ── CPP 직접 각도 입력 → 레버 동기화 ──
+        function applyCPPInput(inputId, leverHandleId, cppElementId, displayId) {
+            const inp    = document.getElementById(inputId);
+            const handle = document.getElementById(leverHandleId);
+            const cpp    = document.getElementById(cppElementId);
+            const disp   = document.getElementById(displayId);
+            if (!inp || !handle || !cpp) return;
+
+            function applyValue() {
+                let v = parseFloat(inp.value);
+                if (isNaN(v)) { inp.classList.add('input-err'); return; }
+                v = Math.max(-22, Math.min(27, parseFloat(v.toFixed(1))));
+                inp.value = v.toFixed(1);
+                inp.classList.remove('input-err');
+                inp.classList.add('input-ok');
+                setTimeout(() => inp.classList.remove('input-ok'), 600);
+
+                // range 슬라이더 값 갱신
+                cpp.value = v;
+
+                // 레버 핸들 위치 갱신: value → deltaY
+                const maxY  = 42;
+                const norm  = (v - (-22)) / (27 - (-22)); // 0~1
+                const deltaY = -(norm * 2 - 1) * maxY;
+                handle.style.top = `calc(50% + ${deltaY}px)`;
+
+                // 표시 텍스트 갱신 (value-box)
+                if (disp) {
+                    if (v > 0) disp.textContent = 'AH ' + v.toFixed(1);
+                    else if (v < 0) disp.textContent = 'AS ' + Math.abs(v).toFixed(1);
+                    else disp.textContent = '0';
+                }
+
+                // CPP 상태 즉시 반영
+                if (cppElementId === 'portCPP') {
+                    cppState.portTarget = v;
+                    cppState.portActual = v;
+                } else {
+                    cppState.stbdTarget = v;
+                    cppState.stbdActual = v;
+                }
+
+                updateDisplayValues();
+                calculate();
+            }
+
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { applyValue(); inp.blur(); }
+                if (e.key === 'Escape') {
+                    inp.value = parseFloat(cpp.value).toFixed(1);
+                    inp.blur();
+                }
+            });
+            inp.addEventListener('blur', applyValue);
+        }
+
+        applyCPPInput('portCPPInput', 'portCPPLever', 'portCPP', 'portCPPValue2');
+        applyCPPInput('stbdCPPInput', 'stbdCPPLever', 'stbdCPP', 'stbdCPPValue2');
+
+        // 초기 CPP 상태 슬라이더 값과 동기화
+        cppState.portActual = parseFloat(elements.portCPP.value);
+        cppState.portTarget = cppState.portActual;
+        cppState.stbdActual = parseFloat(elements.stbdCPP.value);
+        cppState.stbdTarget = cppState.stbdActual;
+
+        // 초기 CLUTCH 상태 (GOVERNOR > 0 이면 ON)
+        clutchState.portEngaged = parseInt(elements.portGovernor.value) > 0;
+        clutchState.stbdEngaged = parseInt(elements.stbdGovernor.value) > 0;
+
+        updateDisplayValues();
+        calculate();
+        syncAllLevers();
+
+        // ── 초기 CPP 입력창 동기화 ──
+        (function() {
+            const pI = document.getElementById('portCPPInput');
+            const sI = document.getElementById('stbdCPPInput');
+            const pV = parseFloat(elements.portCPP.value);
+            const sV = parseFloat(elements.stbdCPP.value);
+            if (pI) pI.value = pV.toFixed(1);
+            if (sI) sI.value = sV.toFixed(1);
+        })();
+
+
+        // ═══════════════════════════════════════════════
+        // TOP-DOWN WATER SHIMMER (MOTION PANEL ONLY)
+        // ═══════════════════════════════════════════════
+        (function initWaterShimmer() {
+            const canvas = document.getElementById('waterShimmerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let t = 0;
+
+            function resize() {
+                const parent = canvas.parentElement;
+                canvas.width  = parent.offsetWidth;
+                canvas.height = parent.offsetHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            // Caustic light pattern (simplex-like noise via sin combinations)
+            function caustic(x, y, time) {
+                const s = 0.012;
+                let v = 0;
+                v += Math.sin(x * s * 1.2 + time * 0.015 + Math.sin(y * s * 0.9 + time * 0.008) * 1.5);
+                v += Math.sin(y * s * 1.1 - time * 0.012 + Math.sin(x * s * 0.7 - time * 0.010) * 1.2);
+                v += Math.sin((x + y) * s * 0.7 + time * 0.009) * 0.8;
+                v += Math.sin(Math.sqrt(x * x * s * s + y * y * s * s) * 2.0 - time * 0.011) * 0.6;
+                return (v + 3) / 6; // normalize 0~1
+            }
+
+            // Sparkle particles
+            const sparkles = [];
+            const MAX_SPARKLES = 35;
+
+            function spawnSparkle(W, H) {
+                sparkles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    life: 1.0,
+                    decay: 0.008 + Math.random() * 0.015,
+                    maxR: 1.5 + Math.random() * 2.5,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            function draw() {
+                const W = canvas.width, H = canvas.height;
+
+                // Deep ocean base
+                const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+                bg.addColorStop(0, '#0a2a4a');
+                bg.addColorStop(0.6, '#071e38');
+                bg.addColorStop(1, '#04111f');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, W, H);
+
+                // Caustic light network (top-down water surface refraction)
+                const step = 8;
+                for (let x = 0; x < W; x += step) {
+                    for (let y = 0; y < H; y += step) {
+                        const v = caustic(x, y, t);
+                        if (v > 0.62) {
+                            const brightness = (v - 0.62) / 0.38;
+                            const alpha = brightness * 0.15;
+                            const r = 40 + brightness * 80;
+                            const g = 160 + brightness * 70;
+                            const b = 220 + brightness * 35;
+                            ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${alpha.toFixed(3)})`;
+                            ctx.fillRect(x, y, step, step);
+                        }
+                    }
+                }
+
+                // Soft moving light streaks (sunlight refraction lines)
+                for (let i = 0; i < 3; i++) {
+                    const cx = W * (0.2 + i * 0.3) + Math.sin(t * 0.006 + i * 2.1) * W * 0.15;
+                    const cy = H * 0.5 + Math.cos(t * 0.005 + i * 1.7) * H * 0.25;
+                    const radius = 80 + Math.sin(t * 0.008 + i) * 30;
+                    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+                    grd.addColorStop(0, `rgba(80,200,255,${0.04 + Math.sin(t * 0.01 + i) * 0.02})`);
+                    grd.addColorStop(0.5, `rgba(40,150,220,0.015)`);
+                    grd.addColorStop(1, 'rgba(0,80,160,0)');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Sparkle management
+                while (sparkles.length < MAX_SPARKLES) {
+                    spawnSparkle(W, H);
+                }
+
+                for (let i = sparkles.length - 1; i >= 0; i--) {
+                    const sp = sparkles[i];
+                    sp.life -= sp.decay;
+                    if (sp.life <= 0) {
+                        sparkles.splice(i, 1);
+                        continue;
+                    }
+
+                    const pulse = Math.sin(sp.phase + t * 0.08) * 0.5 + 0.5;
+                    const alpha = sp.life * pulse * 0.7;
+                    const r = sp.maxR * (0.5 + pulse * 0.5);
+
+                    // Bright sparkle core
+                    const grd = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, r * 3);
+                    grd.addColorStop(0, `rgba(220,245,255,${(alpha * 0.9).toFixed(3)})`);
+                    grd.addColorStop(0.3, `rgba(140,220,255,${(alpha * 0.4).toFixed(3)})`);
+                    grd.addColorStop(1, 'rgba(60,160,220,0)');
+                    ctx.beginPath();
+                    ctx.arc(sp.x, sp.y, r * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = grd;
+                    ctx.fill();
+
+                    // Tiny bright center dot
+                    if (pulse > 0.7) {
+                        ctx.beginPath();
+                        ctx.arc(sp.x, sp.y, r * 0.4, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,255,255,${(alpha * 0.8).toFixed(3)})`;
+                        ctx.fill();
+                    }
+                }
+
+                // Subtle moving wave lines (top-down ripple rings)
+                ctx.strokeStyle = 'rgba(80,190,255,0.04)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 4; i++) {
+                    const cx = W / 2 + Math.sin(t * 0.004 + i * 1.5) * W * 0.2;
+                    const cy = H / 2 + Math.cos(t * 0.003 + i * 2.0) * H * 0.15;
+                    const baseR = 30 + i * 40 + Math.sin(t * 0.01 + i) * 15;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, baseR * 1.3, baseR * 0.9, Math.sin(t * 0.002) * 0.3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                t++;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        // ═══════════════════════════════════════════════
+        // STERN THRUST WATER JET PARTICLES
+        // ═══════════════════════════════════════════════
+        (function initThrustJet() {
+            const canvas = document.getElementById('thrustCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resize() {
+                const parent = canvas.parentElement;
+                canvas.width  = parent.offsetWidth;
+                canvas.height = parent.offsetHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function spawnParticle(ox, oy, angleDeg, speed, r, g, b, intensity) {
+                const spread = (Math.random() - 0.5) * 32;
+                const rad = (angleDeg + spread) * Math.PI / 180;
+                particles.push({
+                    x: ox + (Math.random() - 0.5) * 6,
+                    y: oy + (Math.random() - 0.5) * 6,
+                    vx:  Math.sin(rad) * speed * (0.6 + Math.random() * 0.8),
+                    vy: -Math.cos(rad) * speed * (0.6 + Math.random() * 0.8),
+                    life: 1.0,
+                    decay: 0.020 + Math.random() * 0.020,
+                    size: 3.0 + Math.random() * 4.0 * intensity,
+                    r, g, b
+                });
+            }
+
+            function loop() {
+                const W = canvas.width, H = canvas.height;
+                ctx.clearRect(0, 0, W, H);
+
+                if (isMotionPlaying) {
+                    // ── DOM에서 실제 엔진 글로우 위치를 직접 읽어 캔버스 좌표로 변환 ──
+                    // propLeft / propRight 는 선미 연결판(stern-bridge) 안의 발광점
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const propL = document.getElementById('propLeft');
+                    const propR = document.getElementById('propRight');
+
+                    function elemToCanvas(el) {
+                        if (!el) return null;
+                        const r = el.getBoundingClientRect();
+                        return {
+                            x: r.left + r.width  / 2 - canvasRect.left,
+                            y: r.top  + r.height / 2 - canvasRect.top
+                        };
+                    }
+
+                    const portPos = elemToCanvas(propL);
+                    const stbdPos = elemToCanvas(propR);
+
+                    const pSteer = parseFloat(elements.portRudder.value);
+                    const sSteer = parseFloat(elements.stbdRudder.value);
+                    const pGov   = parseInt(elements.portGovernor.value);
+                    const sGov   = parseInt(elements.stbdGovernor.value);
+                    const pCPP   = cppState.portActual;
+                    const sCPP   = cppState.stbdActual;
+
+                    const pFlip = pCPP < 0 ? 180 : 0;
+                    const sFlip = sCPP < 0 ? 180 : 0;
+
+                    // 물이 추력 반대 방향(선미 뒤쪽)으로 분출, 선박 회전도 반영
+                    const pJetAngle = ship.rot + (90 - pSteer) + pFlip + 180;
+                    const sJetAngle = ship.rot + (sSteer - 90) + sFlip + 180;
+
+                    const pInt = pGov > 0 ? Math.abs(pCPP) / 27 * (pGov / 10) : 0;
+                    const sInt = sGov > 0 ? Math.abs(sCPP) / 27 * (sGov / 10) : 0;
+
+                    const count = (intensity) => Math.ceil(intensity * 5);
+                    const spd   = (intensity) => 2.5 + intensity * 4.5;
+
+                    if (portPos && pInt > 0.03) {
+                        for (let i = 0; i < count(pInt); i++) {
+                            spawnParticle(portPos.x, portPos.y, pJetAngle, spd(pInt), 80, 200, 255, pInt);
+                        }
+                    }
+                    if (stbdPos && sInt > 0.03) {
+                        for (let i = 0; i < count(sInt); i++) {
+                            spawnParticle(stbdPos.x, stbdPos.y, sJetAngle, spd(sInt), 100, 220, 255, sInt);
+                        }
+                    }
+                }
+
+                particles = particles.filter(p => p.life > 0.01);
+                for (const p of particles) {
+                    p.x    += p.vx;
+                    p.y    += p.vy;
+                    p.life -= p.decay;
+                    p.size *= 0.976;
+
+                    const a = p.life;
+                    const r = p.size * 2.2;
+                    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+                    grd.addColorStop(0,   `rgba(${p.r},${p.g},${p.b},${(a * 0.90).toFixed(2)})`);
+                    grd.addColorStop(0.45,`rgba(${p.r},${p.g},${p.b},${(a * 0.38).toFixed(2)})`);
+                    grd.addColorStop(1,   `rgba(${p.r},${p.g},${p.b},0)`);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = grd;
+                    ctx.fill();
+                }
+
+                requestAnimationFrame(loop);
+            }
+            loop();
+        })();
+
+        // ═══════════════════════════════════════════════
+        // AUTO-FIT SCREEN SCALING (initial fit only, allows user zoom)
+        // ═══════════════════════════════════════════════
+        (function initAutoScale() {
+            const container = document.querySelector('.container');
+            if (!container) return;
+
+            // Use CSS zoom (works with browser zoom, not against it)
+            function applyInitialFit() {
+                const contentW = container.scrollWidth;
+                const winW = window.innerWidth;
+                if (contentW > winW) {
+                    const zoomLevel = winW / contentW;
+                    document.body.style.zoom = zoomLevel;
+                }
+            }
+
+            applyInitialFit();
+
+            window.addEventListener('load', () => {
+                setTimeout(applyInitialFit, 200);
+            });
+        })();
+
+    </script>
+</body>
+</html>
