@@ -35,6 +35,8 @@
             padding: 1.2vw;
             min-height: 100vh;
             overflow: auto;
+            /* iframe 호환: transform-origin 기준점 */
+            transform-origin: top left;
         }
 
         .container {
@@ -410,6 +412,9 @@
 
         @media (max-width: 1200px) {
             .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .bottom-section {
                 grid-template-columns: 1fr;
             }
         }
@@ -2984,26 +2989,56 @@
         })();
 
         // ═══════════════════════════════════════════════
-        // AUTO-FIT SCREEN SCALING (initial fit only, allows user zoom)
+        // AUTO-FIT SCREEN SCALING (iframe & standalone compatible)
         // ═══════════════════════════════════════════════
         (function initAutoScale() {
             const container = document.querySelector('.container');
             if (!container) return;
 
-            // Use CSS zoom (works with browser zoom, not against it)
-            function applyInitialFit() {
+            function applyFit() {
+                // Reset any previous transform/zoom
+                document.body.style.transform = '';
+                document.body.style.zoom = '';
+                document.body.style.width = '';
+                document.body.style.height = '';
+
+                // Force layout recalculation
+                void container.offsetWidth;
+
                 const contentW = container.scrollWidth;
+                const contentH = container.scrollHeight;
                 const winW = window.innerWidth;
-                if (contentW > winW) {
-                    const zoomLevel = winW / contentW;
-                    document.body.style.zoom = zoomLevel;
+                const winH = window.innerHeight;
+
+                // Calculate scale to fit both width and height
+                const scaleX = winW / (contentW + 24); // +24 for padding
+                const scaleY = winH / (contentH + 24);
+                const scale = Math.min(scaleX, scaleY, 1); // Never scale up
+
+                if (scale < 0.98) {
+                    // Prefer CSS zoom for Chromium (better event coord handling)
+                    // Fallback to transform for Firefox
+                    const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
+                    
+                    if (isFirefox) {
+                        document.body.style.transform = 'scale(' + scale + ')';
+                        document.body.style.transformOrigin = 'top left';
+                        document.body.style.width = (100 / scale) + '%';
+                        document.body.style.height = (contentH * scale) + 'px';
+                    } else {
+                        document.body.style.zoom = scale;
+                    }
                 }
             }
 
-            applyInitialFit();
-
-            window.addEventListener('load', () => {
-                setTimeout(applyInitialFit, 200);
+            // Apply on load and resize
+            applyFit();
+            window.addEventListener('load', function() {
+                setTimeout(applyFit, 200);
+            });
+            window.addEventListener('resize', function() {
+                clearTimeout(window._resizeTimer);
+                window._resizeTimer = setTimeout(applyFit, 150);
             });
         })();
 
