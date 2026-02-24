@@ -419,6 +419,120 @@
             }
         }
 
+        /* ── MOBILE RESPONSIVE ── */
+        @media (max-width: 768px) {
+            body {
+                padding: 4px;
+            }
+            header {
+                padding: 12px 8px;
+                margin-bottom: 12px;
+                border-radius: 10px;
+            }
+            h1 {
+                font-size: 0.85em;
+                letter-spacing: 1px;
+            }
+            .subtitle {
+                font-size: 0.7em;
+            }
+            /* Instruction box: stack vertically */
+            .container > div:nth-child(2) > div:last-child {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            /* Lever grid: allow wrapping on mobile */
+            .lever-grid {
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                overflow-x: visible !important;
+            }
+            .card-group {
+                flex: 1 1 auto;
+                min-width: 0;
+                justify-content: center;
+            }
+            .lever-card {
+                width: 80px !important;
+                min-width: 80px !important;
+                max-width: 80px !important;
+                flex: 0 0 80px !important;
+                padding: 5px;
+            }
+            .lever-card-title {
+                font-size: 0.48em;
+            }
+            .lever-value-box {
+                font-size: 0.75em;
+                padding: 3px 5px;
+            }
+            .steer-direct-input {
+                font-size: 0.75em;
+                padding: 3px 5px;
+            }
+            .lever-container-card {
+                padding: 20px 6px 8px 6px;
+            }
+            /* Bottom section */
+            .bottom-section {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+            .note-panel {
+                padding: 12px;
+            }
+            .note-body {
+                font-size: 0.75em;
+            }
+            /* Ship visual */
+            .ship-visual {
+                height: clamp(300px, 70vw, 500px);
+            }
+            .ship {
+                transform: translate(-50%, -50%) scale(0.7);
+            }
+            /* Play button */
+            .play-toggle-btn {
+                padding: 8px 14px;
+                font-size: 0.8em;
+            }
+            .panel {
+                padding: 12px;
+                border-radius: 10px;
+            }
+            .visual-panel {
+                padding: 12px;
+            }
+            .panel-title {
+                font-size: 0.9em;
+                margin-bottom: 10px;
+            }
+            .direction-text {
+                font-size: 0.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lever-card {
+                width: 68px !important;
+                min-width: 68px !important;
+                max-width: 68px !important;
+                flex: 0 0 68px !important;
+            }
+            .card-group-label {
+                font-size: 0.42em;
+            }
+            .ship {
+                transform: translate(-50%, -50%) scale(0.55);
+            }
+            .ship-visual {
+                height: clamp(250px, 65vw, 400px);
+            }
+            h1 {
+                font-size: 0.65em;
+            }
+        }
+
         .info-badge {
             display: inline-block;
             padding: 4px 10px;
@@ -446,7 +560,7 @@
             align-items: stretch !important;
             justify-content: center !important;
             gap: 16px !important;
-            overflow-x: auto;
+            overflow-x: visible;
         }
 
         /* 각 그룹 박스 */
@@ -1103,16 +1217,16 @@
         [ SIMULATION INSTRUCTIONS ]
     </div>
     
-    <div style="display: flex; justify-content: space-between; gap: 15px; line-height: 1.6; width: 100%;">
-        <div style="flex: 1;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; line-height: 1.6; width: 100%;">
+        <div style="flex: 1; min-width: 200px;">
             <span style="font-weight: 800;">■ STEERING LEVER</span><br>
             Drag handle OR type angle & press Enter.
         </div>
-        <div style="flex: 1;">
+        <div style="flex: 1; min-width: 200px;">
             <span style="font-weight: 800;">■ GOVERNOR HANDLE</span><br>
             Drag handle (Engine RPM UP/DOWN & Clutch ON/OFF).
         </div>
-        <div style="flex: 1;">
+        <div style="flex: 1; min-width: 200px;">
             <span style="font-weight: 800;">■ CPP ANGLE</span><br>
             Drag handle OR type angle & press Enter.
         </div>
@@ -3005,26 +3119,38 @@
                 // Force layout recalculation
                 void container.offsetWidth;
 
-                const contentW = container.scrollWidth;
+                // Measure true content width including overflow children
+                let contentW = container.scrollWidth;
+                // Also check lever-grid which may overflow
+                const leverGrid = container.querySelector('.lever-grid');
+                if (leverGrid) {
+                    contentW = Math.max(contentW, leverGrid.scrollWidth + 24);
+                }
                 const contentH = container.scrollHeight;
                 const winW = window.innerWidth;
                 const winH = window.innerHeight;
 
-                // Calculate scale to fit both width and height
-                const scaleX = winW / (contentW + 24); // +24 for padding
-                const scaleY = winH / (contentH + 24);
-                const scale = Math.min(scaleX, scaleY, 1); // Never scale up
+                // On mobile (narrow screens), only fit width — allow vertical scroll
+                const isMobile = winW < 900;
+                let scale;
+                if (isMobile) {
+                    scale = Math.min(winW / (contentW + 8), 1);
+                } else {
+                    const scaleX = winW / (contentW + 24);
+                    const scaleY = winH / (contentH + 24);
+                    scale = Math.min(scaleX, scaleY, 1);
+                }
 
                 if (scale < 0.98) {
-                    // Prefer CSS zoom for Chromium (better event coord handling)
-                    // Fallback to transform for Firefox
                     const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
                     
                     if (isFirefox) {
                         document.body.style.transform = 'scale(' + scale + ')';
                         document.body.style.transformOrigin = 'top left';
                         document.body.style.width = (100 / scale) + '%';
-                        document.body.style.height = (contentH * scale) + 'px';
+                        if (!isMobile) {
+                            document.body.style.height = (contentH * scale) + 'px';
+                        }
                     } else {
                         document.body.style.zoom = scale;
                     }
@@ -3039,6 +3165,10 @@
             window.addEventListener('resize', function() {
                 clearTimeout(window._resizeTimer);
                 window._resizeTimer = setTimeout(applyFit, 150);
+            });
+            // Also reapply after orientation change on mobile
+            window.addEventListener('orientationchange', function() {
+                setTimeout(applyFit, 300);
             });
         })();
 
