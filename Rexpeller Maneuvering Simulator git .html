@@ -3034,12 +3034,18 @@
                     const propL = document.getElementById('propLeft');
                     const propR = document.getElementById('propRight');
 
+                    // Screen→Canvas 좌표 변환 비율 (CSS zoom/transform 보정)
+                    const ratioX = canvas.width  / canvasRect.width;
+                    const ratioY = canvas.height / canvasRect.height;
+
                     function elemToCanvas(el) {
                         if (!el) return null;
                         const r = el.getBoundingClientRect();
+                        const screenX = r.left + r.width  / 2 - canvasRect.left;
+                        const screenY = r.top  + r.height / 2 - canvasRect.top;
                         return {
-                            x: r.left + r.width  / 2 - canvasRect.left,
-                            y: r.top  + r.height / 2 - canvasRect.top
+                            x: screenX * ratioX,
+                            y: screenY * ratioY
                         };
                     }
 
