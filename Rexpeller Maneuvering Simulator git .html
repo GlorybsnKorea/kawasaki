@@ -14,6 +14,8 @@
 
         html {
             background: #0a1929;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         :root {
@@ -436,27 +438,29 @@
             .subtitle {
                 font-size: 0.7em;
             }
-            /* Instruction box: stack vertically */
-            .container > div:nth-child(2) > div:last-child {
-                flex-direction: column !important;
-                gap: 8px !important;
+            /* Lever grid: horizontal scroll when overflow */
+            .lever-container-card {
+                padding: 20px 4px 8px 4px;
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
             }
-            /* Lever grid: allow wrapping on mobile */
             .lever-grid {
-                flex-wrap: wrap !important;
-                gap: 10px !important;
+                flex-wrap: nowrap !important;
+                gap: 8px !important;
                 overflow-x: visible !important;
+                justify-content: flex-start !important;
+                min-width: min-content;
             }
             .card-group {
-                flex: 1 1 auto;
+                flex: 0 0 auto;
                 min-width: 0;
-                justify-content: center;
             }
             .lever-card {
-                width: 80px !important;
-                min-width: 80px !important;
-                max-width: 80px !important;
-                flex: 0 0 80px !important;
+                width: 78px !important;
+                min-width: 78px !important;
+                max-width: 78px !important;
+                flex: 0 0 78px !important;
                 padding: 5px;
             }
             .lever-card-title {
@@ -469,9 +473,6 @@
             .steer-direct-input {
                 font-size: 0.75em;
                 padding: 3px 5px;
-            }
-            .lever-container-card {
-                padding: 20px 6px 8px 6px;
             }
             /* Bottom section */
             .bottom-section {
@@ -3125,45 +3126,39 @@
                 // Force layout recalculation
                 void container.offsetWidth;
 
-                // Measure true content width including overflow children
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+
+                // ── 모바일: JS 스케일링 완전 비적용 (CSS 반응형만 사용) ──
+                // zoom/transform은 모바일 브라우저에서 스크롤 높이를 잘못 계산하여
+                // 하단이 잘리는 원인이 됨
+                if (winW < 900) return;
+
+                // ── 데스크톱 전용: 화면에 맞춤 ──
                 let contentW = container.scrollWidth;
-                // Also check lever-grid which may overflow
                 const leverGrid = container.querySelector('.lever-grid');
                 if (leverGrid) {
                     contentW = Math.max(contentW, leverGrid.scrollWidth + 24);
                 }
                 const contentH = container.scrollHeight;
-                const winW = window.innerWidth;
-                const winH = window.innerHeight;
 
-                // On mobile (narrow screens), only fit width — allow vertical scroll
-                const isMobile = winW < 900;
-                let scale;
-                if (isMobile) {
-                    scale = Math.min(winW / (contentW + 8), 1);
-                } else {
-                    const scaleX = winW / (contentW + 24);
-                    const scaleY = winH / (contentH + 24);
-                    scale = Math.min(scaleX, scaleY, 1);
-                }
+                const scaleX = winW / (contentW + 24);
+                const scaleY = winH / (contentH + 24);
+                const scale = Math.min(scaleX, scaleY, 1);
 
                 if (scale < 0.98) {
                     const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
-                    
                     if (isFirefox) {
                         document.body.style.transform = 'scale(' + scale + ')';
                         document.body.style.transformOrigin = 'top left';
                         document.body.style.width = (100 / scale) + '%';
-                        if (!isMobile) {
-                            document.body.style.height = (contentH * scale) + 'px';
-                        }
+                        document.body.style.height = (contentH * scale) + 'px';
                     } else {
                         document.body.style.zoom = scale;
                     }
                 }
             }
 
-            // Apply on load and resize
             applyFit();
             window.addEventListener('load', function() {
                 setTimeout(applyFit, 200);
@@ -3172,7 +3167,6 @@
                 clearTimeout(window._resizeTimer);
                 window._resizeTimer = setTimeout(applyFit, 150);
             });
-            // Also reapply after orientation change on mobile
             window.addEventListener('orientationchange', function() {
                 setTimeout(applyFit, 300);
             });
