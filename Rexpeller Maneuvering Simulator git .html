@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
     <title>KAWASAKI REX-PELLER MANEUVERING SIMULATOR</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -410,127 +410,10 @@
             box-shadow: 0 0 50px rgba(255, 68, 68, 0.7);
         }
 
-        @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            .bottom-section {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* @media 1200px removed — auto-scale handles width fitting */
 
-        /* ── MOBILE RESPONSIVE ── */
-        @media (max-width: 768px) {
-            body {
-                padding: 4px;
-            }
-            header {
-                padding: 12px 8px;
-                margin-bottom: 12px;
-                border-radius: 10px;
-            }
-            h1 {
-                font-size: 0.85em;
-                letter-spacing: 1px;
-            }
-            .subtitle {
-                font-size: 0.7em;
-            }
-            /* Lever grid: horizontal scroll when overflow */
-            .lever-container-card {
-                padding: 20px 4px 8px 4px;
-                overflow-x: auto;
-                overflow-y: visible;
-                -webkit-overflow-scrolling: touch;
-            }
-            .lever-grid {
-                flex-wrap: nowrap !important;
-                gap: 8px !important;
-                overflow-x: visible !important;
-                justify-content: flex-start !important;
-                min-width: min-content;
-            }
-            .card-group {
-                flex: 0 0 auto;
-                min-width: 0;
-            }
-            .lever-card {
-                width: 78px !important;
-                min-width: 78px !important;
-                max-width: 78px !important;
-                flex: 0 0 78px !important;
-                padding: 5px;
-            }
-            .lever-card-title {
-                font-size: 0.48em;
-            }
-            .lever-value-box {
-                font-size: 0.75em;
-                padding: 3px 5px;
-            }
-            .steer-direct-input {
-                font-size: 0.75em;
-                padding: 3px 5px;
-            }
-            /* Bottom section */
-            .bottom-section {
-                grid-template-columns: 1fr !important;
-                gap: 12px;
-            }
-            .note-panel {
-                padding: 12px;
-            }
-            .note-body {
-                font-size: 0.75em;
-            }
-            /* Ship visual */
-            .ship-visual {
-                height: clamp(300px, 70vw, 500px);
-            }
-            .ship {
-                transform: translate(-50%, -50%) scale(0.7);
-            }
-            /* Play button */
-            .play-toggle-btn {
-                padding: 8px 14px;
-                font-size: 0.8em;
-            }
-            .panel {
-                padding: 12px;
-                border-radius: 10px;
-            }
-            .visual-panel {
-                padding: 12px;
-            }
-            .panel-title {
-                font-size: 0.9em;
-                margin-bottom: 10px;
-            }
-            .direction-text {
-                font-size: 0.8em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .lever-card {
-                width: 68px !important;
-                min-width: 68px !important;
-                max-width: 68px !important;
-                flex: 0 0 68px !important;
-            }
-            .card-group-label {
-                font-size: 0.42em;
-            }
-            .ship {
-                transform: translate(-50%, -50%) scale(0.55);
-            }
-            .ship-visual {
-                height: clamp(250px, 65vw, 400px);
-            }
-            h1 {
-                font-size: 0.65em;
-            }
-        }
+        /* Mobile media queries removed — auto-scale handles width fitting.
+           Content always renders as desktop layout, then gets scaled to fit. */
 
         .info-badge {
             display: inline-block;
@@ -3121,41 +3004,48 @@
                 document.body.style.width = '';
                 document.body.style.height = '';
 
-                // ── 실제 모바일 감지: viewport가 고정(1200)이므로 screen.width 사용 ──
-                // 모바일에서는 브라우저가 자체적으로 축소/스크롤 처리 → JS 스케일링 불필요
-                var realScreenW = Math.min(screen.width, screen.height);
-                if (realScreenW < 900) return;
-
                 // Force layout recalculation
                 void container.offsetWidth;
 
-                // ── 데스크톱 전용: 화면에 맞춤 ──
-                var contentW = container.scrollWidth;
-                var leverGrid = container.querySelector('.lever-grid');
+                // Measure true content width including overflow children
+                let contentW = container.scrollWidth;
+                // Also check lever-grid which may overflow
+                const leverGrid = container.querySelector('.lever-grid');
                 if (leverGrid) {
                     contentW = Math.max(contentW, leverGrid.scrollWidth + 24);
                 }
-                var contentH = container.scrollHeight;
-                var winW = window.innerWidth;
-                var winH = window.innerHeight;
+                const contentH = container.scrollHeight;
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
 
-                var scaleX = winW / (contentW + 24);
-                var scaleY = winH / (contentH + 24);
-                var scale = Math.min(scaleX, scaleY, 1);
+                // On mobile (narrow screens), only fit width — allow vertical scroll
+                const isMobile = winW < 900;
+                let scale;
+                if (isMobile) {
+                    scale = Math.min(winW / (contentW + 8), 1);
+                } else {
+                    const scaleX = winW / (contentW + 24);
+                    const scaleY = winH / (contentH + 24);
+                    scale = Math.min(scaleX, scaleY, 1);
+                }
 
                 if (scale < 0.98) {
-                    var isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
+                    const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
+                    
                     if (isFirefox) {
                         document.body.style.transform = 'scale(' + scale + ')';
                         document.body.style.transformOrigin = 'top left';
                         document.body.style.width = (100 / scale) + '%';
-                        document.body.style.height = (contentH * scale) + 'px';
+                        if (!isMobile) {
+                            document.body.style.height = (contentH * scale) + 'px';
+                        }
                     } else {
                         document.body.style.zoom = scale;
                     }
                 }
             }
 
+            // Apply on load and resize
             applyFit();
             window.addEventListener('load', function() {
                 setTimeout(applyFit, 200);
@@ -3164,6 +3054,29 @@
                 clearTimeout(window._resizeTimer);
                 window._resizeTimer = setTimeout(applyFit, 150);
             });
+            // Also reapply after orientation change on mobile
+            window.addEventListener('orientationchange', function() {
+                setTimeout(applyFit, 300);
+            });
+        })();
+
+        // ═══════════════════════════════════════════════
+        // IFRAME HEIGHT → 부모(Blogger)에게 실제 높이 전달
+        // ═══════════════════════════════════════════════
+        (function iframeHeightSync() {
+            if (window === window.parent) return;
+            function sendHeight() {
+                try {
+                    var h = Math.max(
+                        document.body.scrollHeight,
+                        document.documentElement.scrollHeight
+                    );
+                    window.parent.postMessage({ type: 'simHeight', h: h }, '*');
+                } catch(e) {}
+            }
+            window.addEventListener('load', function(){ setTimeout(sendHeight, 600); });
+            window.addEventListener('resize', function(){ setTimeout(sendHeight, 200); });
+            setInterval(sendHeight, 3000);
         })();
 
     </script>
