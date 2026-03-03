@@ -1778,9 +1778,8 @@
             const netFwd = tP.fwd + tS.fwd;
             const netLat = tP.lat + tS.lat;
             // 회두: 출력 절대값 차이 (매뉴얼: 출력 작은 쪽으로 선수 회두)
-            // 최종 공식: abs(tS)-abs(tP) × fwdSign
-            // 전진: 큰쪽 방향으로 회두 / 후진: 큰쪽 반대로 선미 이동
-            const netYaw = Math.abs(tS.fwd) - Math.abs(tP.fwd);
+            // PORT 추력이 클수록 선미가 PORT로 → 선수가 STBD로 (양수=STBD 회두)
+            const netYaw = Math.abs(tP.fwd) - Math.abs(tS.fwd);
 
             // ── 모션 목표 갱신 (PLAY 중일 때 animateMotion이 사용) ──
             ship._targetFwd = netFwd;
@@ -2205,7 +2204,7 @@
 
             const netFwd = tP.fwd + tS.fwd;
             const netLat = tP.lat + tS.lat;
-            const netYaw = Math.abs(tS.fwd) - Math.abs(tP.fwd);
+            const netYaw = Math.abs(tP.fwd) - Math.abs(tS.fwd);
 
             // ── 5. 가속도 적용 (F = m·a, 단순화) ──
             const accel = PHYSICS.THRUST_SCALE;
@@ -2216,8 +2215,9 @@
 
             ship.velX   += accelX;
             ship.velY   += accelY;
-            const fwdSign = netFwd >= 0 ? -1 : +1;  // 전진=-1, 후진=+1
-            ship.rotVel += netYaw * fwdSign * accel * 0.6;
+            // PORT 추력이 크면 netYaw > 0 → 양수 회전(시계방향) → 선수 STBD, 선미 PORT
+            // AHEAD/ASTERN 모두 동일한 방향 (fwdSign 불필요)
+            ship.rotVel += netYaw * accel * 0.6;
 
             // ── 6. 마찰/저항 (물의 점성) ──
             ship.velX   *= PHYSICS.DRAG_LINEAR;
@@ -3083,4 +3083,3 @@
     </script>
 </body>
 </html>
-
